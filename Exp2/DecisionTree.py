@@ -1,5 +1,5 @@
 import math
-import TreePlotter
+# import TreePlotter
 
 
 # Calculate the entropy of the data set
@@ -105,7 +105,7 @@ def buildTree(data_set, label_list, type):
         return pred_list[0]
 
     if len(data_set) == 1:
-        return (pred_list)
+        return pred_list
 
     best_label_index = chooseLabel(data_set, type)
     best_label_val = label_list[best_label_index]
@@ -121,19 +121,25 @@ def buildTree(data_set, label_list, type):
     return decision_tree
 
 
-def createDataSet():
-    dataSet = [[0, 0, 0, 0, 'N'],
-               [0, 0, 0, 1, 'N'],
-               [1, 0, 0, 0, 'Y'],
-               [2, 1, 0, 0, 'Y'],
-               [2, 2, 1, 0, 'Y'],
-               [2, 2, 1, 1, 'N'],
-               [1, 2, 1, 1, 'Y']]
-    labels = ['outlook', 'temperature', 'humidity', 'windy']
-    return dataSet, labels
+# Extract the data set from file
+def dataExtract():
+    # TODO - Extract data
+    pass
 
 
-dataSet, labels = createDataSet()
-labels_tmp = labels[:]
-desicionTree = buildTree(dataSet, labels_tmp, 1)
-TreePlotter.createPlot(desicionTree)
+# def createDataSet():
+#     dataSet = [[0, 0, 0, 0, 'N'],
+#                [0, 0, 0, 1, 'N'],
+#                [1, 0, 0, 0, 'Y'],
+#                [2, 1, 0, 0, 'Y'],
+#                [2, 2, 1, 0, 'Y'],
+#                [2, 2, 1, 1, 'N'],
+#                [1, 2, 1, 1, 'Y']]
+#     labels = ['outlook', 'temperature', 'humidity', 'windy']
+#     return dataSet, labels
+#
+#
+# dataSet, labels = createDataSet()
+# labels_tmp = labels[:]
+# desicionTree = buildTree(dataSet, labels_tmp, 1)
+# TreePlotter.createPlot(desicionTree)
