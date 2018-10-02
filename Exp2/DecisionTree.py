@@ -129,26 +129,9 @@ def predRes(decision_tree, data):
     while type(decision_tree).__name__ == "dict":
         used_label = list(decision_tree.keys())[0]
         used_val = data[used_label[0]]
-        decision_tree = decision_tree[used_label][used_val]
+        if used_val in decision_tree[used_label].keys():
+            decision_tree = decision_tree[used_label][used_val]
+        else:
+            decision_tree = decision_tree[used_label][list(decision_tree[used_label].keys())[0]]
         del data[used_label[0]]
     return decision_tree
-
-
-def createDataSet():
-    dataSet = [[0, 0, 0, 0, 'N'],
-               [0, 0, 0, 1, 'N'],
-               [1, 0, 0, 0, 'Y'],
-               [2, 1, 0, 0, 'Y'],
-               [2, 2, 1, 0, 'Y'],
-               [2, 2, 1, 1, 'N'],
-               [1, 2, 1, 1, 'Y']]
-    labels = [1, 2, 3, 4]
-    return dataSet, labels
-
-
-dataSet, labels = createDataSet()
-labels_tmp = labels[:]
-desicionTree = buildTree(dataSet, labels_tmp, 1)
-TreePlotter.createPlot(desicionTree)
-data = [0, 1, 2, 0]
-print(predRes(desicionTree, data))

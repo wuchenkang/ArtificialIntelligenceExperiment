@@ -38,10 +38,17 @@ def storeData(k_fold):
         valid_file.close()
 
 
-def preProcess():
-    data_list = getData("car_train.csv")
-    k_fold = kFold(data_list, 5)
+def loadData(file_name):
+    data_set = []
+    data_file = open(file_name, "r")
+    data_csv = csv.reader(data_file)
+    for row in data_csv:
+        data_set.append(row)
+    data_file.close()
+    return data_set
+
+
+def preProcess(file_name, k):
+    data_list = getData(file_name)
+    k_fold = kFold(data_list, k)
     storeData(k_fold)
-
-
-preProcess()
