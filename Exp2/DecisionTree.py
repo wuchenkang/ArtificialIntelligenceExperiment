@@ -1,4 +1,5 @@
 import math
+import collections
 import TreePlotter
 
 
@@ -105,19 +106,31 @@ def buildTree(data_set, label_list, type):
         return pred_list[0]
 
     if len(data_set) == 1:
-        return (pred_list)
+        return pred_list[0]
+
+    if len(label_list) == 0:
+        return collections.Counter(pred_list).most_common(1)[0][0]
 
     best_label_index = chooseLabel(data_set, type)
     best_label_val = label_list[best_label_index]
-    decision_tree = {best_label_val:{}}
+    decision_tree = {(best_label_index, best_label_val): {}}
     del(label_list[best_label_index])
     label_col = [data[best_label_index] for data in data_set]
     val_list = set(label_col)
 
     for val in val_list:
         sub_labels = label_list[:]
-        decision_tree[best_label_val][val] = buildTree(divideSet(data_set, best_label_index, val), sub_labels, type)
+        decision_tree[(best_label_index, best_label_val)][val] = buildTree(divideSet(data_set, best_label_index, val), sub_labels, type)
 
+    return decision_tree
+
+
+def predRes(decision_tree, data):
+    while type(decision_tree).__name__ == "dict":
+        used_label = list(decision_tree.keys())[0]
+        used_val = data[used_label[0]]
+        decision_tree = decision_tree[used_label][used_val]
+        del data[used_label[0]]
     return decision_tree
 
 
@@ -129,7 +142,7 @@ def createDataSet():
                [2, 2, 1, 0, 'Y'],
                [2, 2, 1, 1, 'N'],
                [1, 2, 1, 1, 'Y']]
-    labels = ['outlook', 'temperature', 'humidity', 'windy']
+    labels = [1, 2, 3, 4]
     return dataSet, labels
 
 
@@ -137,3 +150,5 @@ dataSet, labels = createDataSet()
 labels_tmp = labels[:]
 desicionTree = buildTree(dataSet, labels_tmp, 1)
 TreePlotter.createPlot(desicionTree)
+data = [0, 1, 2, 0]
+print(predRes(desicionTree, data))
