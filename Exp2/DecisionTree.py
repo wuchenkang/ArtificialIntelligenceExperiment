@@ -57,7 +57,6 @@ def calPerf(data_set, label_index, type):
             info_gain -= prob * calEntropy(sub_set)
             split_val -= prob * math.log(prob, 2)
         info_gain_ratio = info_gain / split_val
-
         return (info_gain, info_gain_ratio)[type]
     elif type == 2:
         gini_gain = calGini(data_set)
@@ -68,7 +67,6 @@ def calPerf(data_set, label_index, type):
             sub_set = divideSet(data_set, label_index, label_val)
             prob = len(sub_set) / len(data_set)
             gini_gain -= prob * calGini(sub_set)
-
         return gini_gain
     else:
         raise ValueError("Type: only value 0(info gain), 1(info gain ratio), 2(gini impurity) available.")
