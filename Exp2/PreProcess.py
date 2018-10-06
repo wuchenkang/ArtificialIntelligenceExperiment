@@ -1,15 +1,6 @@
 import csv
 
 
-def getData(data_file):
-    data_list = []
-    data_file = open(data_file, "r")
-    data_csv = csv.reader(data_file)
-    for row in data_csv:
-        data_list.append(row)
-    return data_list
-
-
 def kFold(data_set, k):
     result = [[[], []] for _ in range(k)]
     for i in range(k):
@@ -49,6 +40,6 @@ def loadData(file_name):
 
 
 def preProcess(file_name, k):
-    data_list = getData(file_name)
+    data_list = loadData(file_name)
     k_fold = kFold(data_list, k)
     storeData(k_fold)

@@ -108,9 +108,6 @@ def buildTree(data_set, label_list, type):
     if len(data_set) == 1:
         return pred_list[0]
 
-    if len(label_list) == 0:
-        return collections.Counter(pred_list).most_common(1)[0][0]
-
     best_label_index = chooseLabel(data_set, type)
     best_label_val = label_list[best_label_index]
     decision_tree = {(best_label_index, best_label_val): {}}
