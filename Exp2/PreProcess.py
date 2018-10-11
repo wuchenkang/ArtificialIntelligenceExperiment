@@ -1,6 +1,7 @@
 import csv
 
 
+# 将数据集依据K-折交叉验证划分为训练集和验证集
 def kFold(data_set, k):
     result = [[[], []] for _ in range(k)]
     for i in range(k):
@@ -12,6 +13,7 @@ def kFold(data_set, k):
     return result
 
 
+# 存储划分出的K个验证集和K个数据集
 def storeData(k_fold):
     k = len(k_fold)
     for i in range(k):
@@ -29,6 +31,7 @@ def storeData(k_fold):
         valid_file.close()
 
 
+# 从csv文件加载数据集
 def loadData(file_name):
     data_set = []
     data_file = open(file_name, "r", encoding="utf-8")
@@ -39,6 +42,7 @@ def loadData(file_name):
     return data_set
 
 
+# 对数据集进行预处理和K-折交叉验证
 def preProcess(file_name, k):
     data_list = loadData(file_name)
     k_fold = kFold(data_list, k)
