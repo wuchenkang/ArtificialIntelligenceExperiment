@@ -74,7 +74,7 @@ def main():
 
     # Calculate the accuracy rate for some possible k
     for k in range(1, 25):
-        # knn_list = [[] for row in range(validation_count)]  # Store KNN for elements in validation set
+        # knn_list = [[] for row in range(validation_count)]  # Store KNN-Reg for elements in validation set
         predict_list = []                                   # Store predict result for elements in validation set
 
         # Prediction
@@ -146,7 +146,7 @@ def main():
     #
     # # Store the distances between elements in test set and train set
     # dist_list = [[0 for col in range(train_count)] for row in range(test_count)]
-    # # Store KNN for elements in validation set
+    # # Store KNN-Reg for elements in validation set
     # # knn_list = [[k for col in range(k)] for row in range(test_count)]
     # # Store predict result for elements in validation set
     # predict_list = [0 for ele in range(test_count)]

@@ -36,21 +36,22 @@ def processData(data_set, split_rate):
     return (train_x, train_y), (valid_x, valid_y)
 
 
-def setEnv(data_size, x_dim, y_dim):
+def setEnv(x_dim, y_dim):
     global INPUT_SIZE, OUTPUT_SIZE, TIME_STEPS, BATCH_SIZE, CELL_SIZE, LEARNING_RATE
     CELL_SIZE = 128
     INPUT_SIZE = x_dim
     OUTPUT_SIZE = y_dim
-    TIME_STEPS = 200
-    BATCH_SIZE = data_size // TIME_STEPS
-    CELL_SIZE = 128
+    TIME_STEPS = 20
+    BATCH_SIZE = 200
+    CELL_SIZE = 20
     LEARNING_RATE = 0.01
 
 
-def getBatch(x_in, y_in):
-    x_out = x_in.reshape(-1, TIME_STEPS, INPUT_SIZE)
-    y_out = y_in.reshape(-1, TIME_STEPS, OUTPUT_SIZE)
-    return x_out, y_out
+def getBatches(x_in, y_in):
+    data_size = len(x_in)
+    for i in range(0, data_size, TIME_STEPS * BATCH_SIZE):
+        yield x_in[i:i+TIME_STEPS * BATCH_SIZE].reshape(-1, TIME_STEPS, INPUT_SIZE),\
+              y_in[i:i+TIME_STEPS * BATCH_SIZE].reshape(-1, TIME_STEPS, OUTPUT_SIZE)
 
 
 class LSTMRNN():
@@ -134,33 +135,38 @@ class LSTMRNN():
 
 if __name__ == '__main__':
     data_set = readData("train.csv")
-    train_set, valid_set = processData(data_set, 0.5)
-    setEnv(len(train_set[0]), len(data_set[0])-1, 1)
+    train_set, valid_set = processData(data_set, 0.8)
+    setEnv(len(data_set[0])-1, 1)
     model = LSTMRNN(TIME_STEPS, INPUT_SIZE, OUTPUT_SIZE, CELL_SIZE, BATCH_SIZE)
     sess = tf.Session()
-    merged = tf.summary.merge_all()
-    writer = tf.summary.FileWriter("logs", sess.graph)
     init = tf.global_variables_initializer()
     sess.run(init)
-    seq, res = getBatch(train_set[0], train_set[1])
-    for i in range(500):
-        if i == 0:
-            feed_dict = {
-                    model.xs: seq,
-                    model.ys: res,
+    init = True
+    for i in range(200):
+        train_cost = 0
+        for j, (x, y) in enumerate(getBatches(train_set[0], train_set[1]), 1):
+            if init:
+                feed_dict = {
+                        model.xs: x,
+                        model.ys: y,
+                        # create initial state
+                }
+                init = False
+            else:
+                feed_dict = {
+                    model.xs: x,
+                    model.ys: y,
+                    model.cell_init_state: state
+                }
+            _, cost, state, pred = sess.run([model.train_op, model.cost, model.cell_final_state, model.ys_out], feed_dict=feed_dict)
+            train_cost += cost
+        if i % 5 == 0:
+            valid_cost = 0
+            for j, (x, y) in enumerate(getBatches(train_set[0], train_set[1]), 1):
+                feed_dict = {
+                    model.xs: x,
+                    model.ys: y,
                     # create initial state
-            }
-        else:
-            feed_dict = {
-                model.xs: seq,
-                model.ys: res,
-                model.cell_init_state: state
-            }
-
-        _, cost, state, pred = sess.run([model.train_op, model.cost, model.cell_final_state, model.ys_out], feed_dict=feed_dict)
-        if i % 20 == 0:
-            print('cost: ', round(cost, 4))
-            result = sess.run(merged, feed_dict)
-            writer.add_summary(result, i)
-
+                }
+                cost, pred = sess.run([model.cost,  model.ys_out], feed_dict=feed_dict)
 
