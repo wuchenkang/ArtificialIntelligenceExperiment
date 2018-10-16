@@ -1,3 +1,4 @@
+import csv
 import numpy as np
 
 
@@ -21,7 +22,7 @@ def chooseFeat(data_set, args=(1, 4)):
     best_val = 0
     min_val = np.inf
 
-    m, n = data_set.shape()
+    m, n = data_set.shape
     for feat in range(n-1):
         for val in set(data_set[:, feat].T.tolist()[0]):
             left_data, right_data = splitSet(data_set, feat, val)
@@ -110,3 +111,36 @@ def predSet(dt, test_set):
         y_hat[i, 0] = predData(dt, test_set[i])
     return y_hat
 
+
+def readData(file_name, type):
+    data_set = []
+    data_file = open(file_name, "r", encoding="utf-8")
+    data_csv = csv.reader(data_file)
+    for row in data_csv:
+        if type == 0:
+            data_set.append(row[:-2] + row[-1:])
+        else:
+            data_set.append(row[:-1])
+    data_file.close()
+    data_set = data_set[1:]
+
+    for row in data_set:
+        for col in range(len(row)):
+            row[col] = float(row[col])
+    return data_set
+
+
+def splitData(data_set, split_rate):
+    split_idx = int(len(data_set) * split_rate)
+    train_set, valid_set = data_set[:split_idx], data_set[split_idx:]
+    return train_set, valid_set
+
+
+data_set = readData("../DATA/train.csv", 0)[:500]
+train_set, valid_set = splitData(data_set, 0.8)
+valid_x = [valid_set[i][:-1] for i in range(len(valid_set))]
+valid_y = [valid_set[i][-1] for i in range(len(valid_set))]
+valid_x = np.mat(valid_x)
+dt = buildTree(train_set, [1, 1000])
+pred_y = predSet(dt, valid_x)
+print(pred_y.shape)
