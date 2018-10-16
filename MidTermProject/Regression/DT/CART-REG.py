@@ -94,6 +94,19 @@ def postPrune(dt, data_set):
         return dt
 
 
-data = [[1, 2, 3], [2, 2, 4], [3, 5, 7], [2, 7, 1]]
-data = np.array(data)
-print(data.shape[0])
+def predData(dt, test_data):
+    if isLeaf(dt):
+        return float(dt)
+    if test_data[0, dt['splitFeat']] > dt['splitVal']:
+        return predData(dt['left'], test_data)
+    else:
+        return predData(dt['left'], test_data)
+
+
+def predSet(dt, test_set):
+    m = test_set.shape[0]
+    y_hat = np.mat(np.zeros(m, 1))
+    for i in range(m):
+        y_hat[i, 0] =predData(dt, test_set[i])
+    return y_hat
+
