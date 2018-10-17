@@ -153,12 +153,12 @@ valid_x = [valid_set[i][:-1] for i in range(len(valid_set))]
 valid_y = [valid_set[i][-1] for i in range(len(valid_set))]
 train_set = np.mat(train_set)
 
-args = (0.02, 64)
+args = (0.01, 100)
 
-dt = buildTree(train_set, args)
-dt_file = open("dt-" + str(args[0]) + "-" + str(args[1]) + "-no-prune.bin", "wb")
-dt_file.write(pickle.dumps(dt))
-dt_file.close()
+# dt = buildTree(train_set, args)
+# dt_file = open("dt-" + str(args[0]) + "-" + str(args[1]) + "-no-prune.bin", "wb")
+# dt_file.write(pickle.dumps(dt))
+# dt_file.close()
 
 dt_file = open("dt-" + str(args[0]) + "-" + str(args[1]) + "-no-prune.bin", "rb")
 dt = pickle.loads(dt_file.read())
@@ -170,4 +170,11 @@ valid_y_hat = predSet(dt, valid_x)
 valid_y = np.mat(valid_y)
 print(np.corrcoef(valid_y, valid_y_hat)[0][1])
 test_set = readData("../DATA/testStudent.csv", 1)
-test_set = np.mat(test_set)
+test_x = np.mat(test_set)
+test_y_hat = predSet(dt, test_x)
+test_y_hat = [test_y_hat[0, i] for i in range(test_y_hat.shape[1])]
+print(len(test_y_hat))
+file = open("CART-REG-" + str(args[0]) + "-" + str(args[1]) + "-no-prune.txt", "w", encoding="utf-8")
+for data in test_y_hat:
+    file.write(str(data) + '\n')
+file.close()
