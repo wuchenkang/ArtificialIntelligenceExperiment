@@ -1,4 +1,5 @@
 import csv
+import pickle
 import numpy as np
 
 
@@ -15,6 +16,7 @@ def splitSet(data_set, feat, feat_val):
 def chooseFeat(data_set, args=(1, 4)):
     # 停止条件1：数据集中所有数据类别相同
     if len(set(data_set[:, -1].T.tolist()[0])) == 1:
+        print("All the same")
         return None, np.mean(data_set[:, -1])
 
     init_var = calVar(data_set)
@@ -30,7 +32,7 @@ def chooseFeat(data_set, args=(1, 4)):
             if left_data.shape[0] < args[1] or right_data.shape[0] < args[1]:
                 continue
             current_val = (calVar(left_data) * left_data.shape[0] + calVar(right_data) * right_data.shape[0]) / data_set.shape[0]
-            if current_val <min_val:
+            if current_val < min_val:
                 min_val = current_val
                 best_feat = feat
                 best_val = val
@@ -42,12 +44,13 @@ def chooseFeat(data_set, args=(1, 4)):
     left_data, right_data = splitSet(data_set, best_feat, best_val)
     # 停止条件3：左子树或右子树中样本过少
     if left_data.shape[0] < args[1] or right_data.shape[0] < args[1]:
+        print("Sample too few")
         return None, np.mean(data_set[:, -1])
 
     return best_feat, best_val
 
 
-def buildTree(data_set, args=(1, 4)):
+def buildTree(data_set, args):
     best_feat, best_val = chooseFeat(data_set, args)
     if best_feat == None:
         return best_val
@@ -101,14 +104,15 @@ def predData(dt, test_data):
     if test_data[0, dt['splitFeat']] > dt['splitVal']:
         return predData(dt['left'], test_data)
     else:
-        return predData(dt['left'], test_data)
+        return predData(dt['right'], test_data)
 
 
 def predSet(dt, test_set):
     m = test_set.shape[0]
-    y_hat = np.mat(np.zeros(m, 1))
+    y_hat = np.zeros((1, m))
+    y_hat = np.mat(y_hat)
     for i in range(m):
-        y_hat[i, 0] = predData(dt, test_set[i])
+        y_hat[0, i] = predData(dt, test_set[i])
     return y_hat
 
 
@@ -136,11 +140,34 @@ def splitData(data_set, split_rate):
     return train_set, valid_set
 
 
-data_set = readData("../DATA/train.csv", 0)[:500]
+def findDepth(dt):
+    if isLeaf(dt):
+        return 0
+    else:
+        return max(findDepth(dt['left']), findDepth(dt['right'])) + 1
+
+
+data_set = readData("../DATA/train.csv", 0)
 train_set, valid_set = splitData(data_set, 0.8)
 valid_x = [valid_set[i][:-1] for i in range(len(valid_set))]
 valid_y = [valid_set[i][-1] for i in range(len(valid_set))]
+train_set = np.mat(train_set)
+
+args = (0.02, 64)
+
+dt = buildTree(train_set, args)
+dt_file = open("dt-" + str(args[0]) + "-" + str(args[1]) + "-no-prune.bin", "wb")
+dt_file.write(pickle.dumps(dt))
+dt_file.close()
+
+dt_file = open("dt-" + str(args[0]) + "-" + str(args[1]) + "-no-prune.bin", "rb")
+dt = pickle.loads(dt_file.read())
+dt_file.close()
+
+print("Depth:\t", findDepth(dt))
 valid_x = np.mat(valid_x)
-dt = buildTree(train_set, [1, 1000])
-pred_y = predSet(dt, valid_x)
-print(pred_y.shape)
+valid_y_hat = predSet(dt, valid_x)
+valid_y = np.mat(valid_y)
+print(np.corrcoef(valid_y, valid_y_hat)[0][1])
+test_set = readData("../DATA/testStudent.csv", 1)
+test_set = np.mat(test_set)
