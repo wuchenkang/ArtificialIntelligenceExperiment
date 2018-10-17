@@ -90,12 +90,12 @@ def predData(test_x, ws, b):
 data_set = readData("../DATA/train.csv", 0)
 data_set = processData(data_set, 0)
 train_set, valid_set = splitData(data_set, 0.9)
-# ws, b = liner_Regression(train_set[0], train_set[1], 0.0001, 100000)
-# pred = predData(valid_set[0], ws, b).T
-# real = np.mat(valid_set[1])
-# print("Corr:\n", np.corrcoef(pred, real))
-# np.savetxt("weight.txt", ws)
-# np.savetxt("biase.txt", b)
+ws, b = liner_Regression(train_set[0], train_set[1], 0.0001, 100000)
+pred = predData(valid_set[0], ws, b).T
+real = np.mat(valid_set[1])
+print("Corr:\n", np.corrcoef(pred, real))
+np.savetxt("weight.txt", ws)
+np.savetxt("biase.txt", b)
 ws = np.mat(np.loadtxt("weight.txt"))
 b = np.mat(np.loadtxt("biase.txt"))
 test_x = readData("../DATA/testStudent.csv", 1)
