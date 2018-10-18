@@ -67,17 +67,17 @@ def isLeaf(dt):
     return type(dt).__name__ != 'dict'
 
 
-def leafMean(dt):
+def leafAvg(dt):
     if not isLeaf(dt['left']):
-        dt['left'] = leafMean(dt['left'])
+        dt['left'] = leafAvg(dt['left'])
     if not isLeaf(dt['right']):
-        dt['right'] = leafMean(dt['right'])
+        dt['right'] = leafAvg(dt['right'])
     return (dt['left'] + dt['right']) / 2.0
 
 
 def postPrune(dt, data_set, err_arg):
     if data_set.shape[0] == 0:
-        return leafMean(dt)
+        return leafAvg(dt)
     if not isLeaf(dt['left']) or not isLeaf(dt['right']):
         left_data, right_data = splitSet(data_set, dt['splitFeat'], dt['splitVal'])
         if not isLeaf(dt['left']):
@@ -87,11 +87,11 @@ def postPrune(dt, data_set, err_arg):
     if isLeaf(dt['left']) and isLeaf(dt['right']):
         left_data, right_data = splitSet(data_set, dt['splitFeat'], dt['splitVal'])
         err_without_merge = (np.sum(np.power(left_data[:, -1] - dt['left'], 2)) + np.sum(np.power(right_data[:, -1] - dt['right'], 2))) / data_set.shape[0]
-        leaf_mean = leafMean(dt)
-        err_with_merge = np.sum(np.power(data_set[:, -1] - leaf_mean, 2)) / data_set.shape[0]
+        leaf_avg = leafAvg(dt)
+        err_with_merge = np.sum(np.power(data_set[:, -1] - leaf_avg, 2)) / data_set.shape[0]
         if err_with_merge < err_without_merge - err_arg:
             print("Prune")
-            return leaf_mean
+            return leaf_avg
         else:
             return dt
     else:
@@ -147,44 +147,53 @@ def findDepth(dt):
         return max(findDepth(dt['left']), findDepth(dt['right'])) + 1
 
 
-data_set = readData("../DATA/train.csv", 0)
-train_set, valid_set = splitData(data_set, 0.8)
-valid_set = [valid_set[i][:] for i in range(len(valid_set))]
+if __name__ == "__main__":
+    data_set = readData("../DATA/train.csv", 0)
+    # split_rate = 0.8
+    train_set = data_set
+    # train_set, valid_set = splitData(data_set, split_rate)
+    # valid_set = [valid_set[i][:] for i in range(len(valid_set))]
 
-# prune_set = valid_set[:len(valid_set) // 2]
-# valid_set = valid_set[len(valid_set) // 2:]
+    # prune_set = valid_set[:len(valid_set) // 2]
+    # valid_set = valid_set[len(valid_set) // 2:]
 
-valid_x = [valid_set[i][:-1] for i in range(len(valid_set))]
-valid_y = [valid_set[i][-1] for i in range(len(valid_set))]
+    # valid_x = [valid_set[i][:-1] for i in range(len(valid_set))]
+    # valid_y = [valid_set[i][-1] for i in range(len(valid_set))]
 
-train_set = np.mat(train_set)
-# prune_set = np.mat(prune_set)
+    train_set = np.mat(train_set)
+    # prune_set = np.mat(prune_set)
 
-args = (0.005, 128)
-dt = buildTree(train_set, args)
-print("Depth:\t", findDepth(dt))
+    args = (0.005, 80)
+    dt = buildTree(train_set, args)
+    print("Depth:\t", findDepth(dt))
 
-# dt = postPrune(dt, prune_set, 0.01)
-# print("Depth:\t", findDepth(dt))
+    # dt = postPrune(dt, prune_set, 0.01)
+    # print("Depth:\t", findDepth(dt))
 
-dt_file = open("dt-" + str(args[0]) + "-" + str(args[1]) + "-no-prune.bin", "wb")
-dt_file.write(pickle.dumps(dt))
-dt_file.close()
+    # dt_file = open("store/tree/dt-" + str(args[0]) + "-" + str(args[1]) + "-" + str(split_rate) + "-no-prune.bin", "wb")
+    dt_file = open("store/tree/dt-" + str(args[0]) + "-" + str(args[1]) + "-no-valid-" + "-no-prune.bin", "wb")
+    dt_file.write(pickle.dumps(dt))
+    dt_file.close()
 
-dt_file = open("dt-" + str(args[0]) + "-" + str(args[1]) + "-no-prune.bin", "rb")
-dt = pickle.loads(dt_file.read())
-dt_file.close()
+    # dt_file = open("store/tree/dt-" + str(args[0]) + "-" + str(args[1]) + "-" + str(split_rate) + "-no-prune.bin", "rb")
+    dt_file = open("store/tree/dt-" + str(args[0]) + "-" + str(args[1]) + "-no-valid-" + "-no-prune.bin", "rb")
+    dt = pickle.loads(dt_file.read())
+    dt_file.close()
 
-valid_x = np.mat(valid_x)
-valid_y_hat = predSet(dt, valid_x)
-valid_y = np.mat(valid_y)
-print(np.corrcoef(valid_y, valid_y_hat)[0][1])
-# test_set = readData("../DATA/testStudent.csv", 1)
-# test_x = np.mat(test_set)
-# test_y_hat = predSet(dt, test_x)
-# test_y_hat = [test_y_hat[0, i] for i in range(test_y_hat.shape[1])]
-# print(len(test_y_hat))
-# file = open("CART-REG-" + str(args[0]) + "-" + str(args[1]) + "-no-prune.txt", "w", encoding="utf-8")
-# for data in test_y_hat:
-#     file.write(str(data) + '\n')
-# file.close()
+    # valid_x = np.mat(valid_x)
+    # valid_y_hat = predSet(dt, valid_x)
+    # valid_y = np.mat(valid_y)
+    # print(np.corrcoef(valid_y, valid_y_hat)[0][1])
+
+    test_set = readData("../DATA/testStudent.csv", 1)
+    test_x = np.mat(test_set)
+    test_y_hat = predSet(dt, test_x)
+    test_y_hat = [test_y_hat[0, i] for i in range(test_y_hat.shape[1])]
+    # file = open("store/predict/CART-REG-" + str(args[0]) + "-" + str(args[1]) + "-" + str(split_rate) + "-no-prune.txt", "w", encoding="utf-8")
+    file = open("store/predict/CART-REG-" + str(args[0]) + "-" + str(args[1]) + "-no-valid-" + "-no-prune.txt",
+                "w", encoding="utf-8")
+    for data in test_y_hat:
+        file.write(str(data) + '\n')
+    file.close()
+
+

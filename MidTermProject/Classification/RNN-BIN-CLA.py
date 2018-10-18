@@ -1,4 +1,4 @@
-# -*- coding:utf-
+# -*- coding:utf-8
 import numpy as np
 import tensorflow as tf
 from string import punctuation
@@ -33,7 +33,7 @@ non_zero_idx = [ii for ii, review in enumerate(reviews_ints) if len(review) != 0
 reviews_ints = [reviews_ints[ii] for ii in non_zero_idx]
 labels = np.array([labels[ii] for ii in non_zero_idx])
 
-seq_len = 200
+seq_len = 250
 features = np.zeros((len(reviews_ints), seq_len), dtype=int)
 for i, row in enumerate(reviews_ints):
     features[i, -len(row):] = np.array(row)[:seq_len]
@@ -50,7 +50,7 @@ val_y, test_y = val_y[:test_idx], val_y[test_idx:]
 lstm_size = 128
 lstm_layers = 1
 batch_size = 500
-learning_rate = 0.005
+learning_rate = 0.001
 
 n_words = len(vocab_to_int)
 
@@ -72,13 +72,13 @@ with graph.as_default():
 
 with graph.as_default():
     # Your basic LSTM cell
-    lstm = tf.contrib.rnn.BasicLSTMCell(lstm_size)
+    lstm = [tf.contrib.rnn.BasicLSTMCell(lstm_size) for _ in range(lstm_layers)]
 
     # Add dropout to the cell
-    drop = tf.contrib.rnn.DropoutWrapper(lstm, output_keep_prob=keep_prob)
+    drop = [tf.contrib.rnn.DropoutWrapper(lstm[i], output_keep_prob=keep_prob) for i in range(len(lstm))]
 
     # Stack up multiple LSTM layers, for deep learning
-    cell = tf.contrib.rnn.MultiRNNCell([drop] * lstm_layers)
+    cell = tf.contrib.rnn.MultiRNNCell(drop)
 
     # Getting an initial state of all zeros
     initial_state = cell.zero_state(batch_size, tf.float32)
@@ -91,7 +91,7 @@ with graph.as_default():
     predictions = tf.contrib.layers.fully_connected(outputs[:, -1], 1, activation_fn=tf.sigmoid)
     cost = tf.losses.mean_squared_error(labels_, predictions)
 
-    global_step = tf.Variable(0,trainable=False)
+    global_step = tf.Variable(0, trainable=False)
     learing_rate = tf.train.exponential_decay(0.005, global_step, 100, 0.95, staircase=True)
     optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
 
@@ -114,6 +114,7 @@ with graph.as_default():
 
 with tf.Session(graph=graph) as sess:
     sess.run(tf.global_variables_initializer())
+    writer = tf.summary.FileWriter("logs", sess.graph)
     iteration = 1
     for e in range(epochs):
         state = sess.run(initial_state)
@@ -121,7 +122,7 @@ with tf.Session(graph=graph) as sess:
         for ii, (x, y) in enumerate(get_batches(train_x, train_y, batch_size), 1):
             feed = {inputs_: x,
                     labels_: y[:, None],
-                    keep_prob: 0.5,
+                    keep_prob: 0.8,
                     initial_state: state}
             loss, state, _ = sess.run([cost, final_state, optimizer], feed_dict=feed)
 
@@ -143,6 +144,7 @@ with tf.Session(graph=graph) as sess:
                 print("Val acc: {:.3f}".format(np.mean(val_acc)))
             iteration += 1
     saver.save(sess, "checkpoints/sentiment.ckpt")
+
 
 test_acc = []
 with tf.Session(graph=graph) as sess:
