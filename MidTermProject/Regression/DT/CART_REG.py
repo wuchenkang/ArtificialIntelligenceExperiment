@@ -2,6 +2,29 @@ import csv
 import pickle
 import numpy as np
 
+def readData(file_name, type):
+    data_set = []
+    data_file = open(file_name, "r", encoding="utf-8")
+    data_csv = csv.reader(data_file)
+    for row in data_csv:
+        if type == 0:
+            data_set.append(row[:-2] + row[-1:])
+        else:
+            data_set.append(row[:-1])
+    data_file.close()
+    data_set = data_set[1:]
+
+    for row in data_set:
+        for col in range(len(row)):
+            row[col] = float(row[col])
+    return data_set
+
+
+def splitData(data_set, split_rate):
+    split_idx = int(len(data_set) * split_rate)
+    train_set, valid_set = data_set[:split_idx], data_set[split_idx:]
+    return train_set, valid_set
+
 
 def calVar(data_set):
     return np.var(data_set[:, -1])
@@ -14,7 +37,7 @@ def splitSet(data_set, feat, feat_val):
 
 
 def chooseFeat(data_set, args=(1, 4)):
-    # 停止条件1：数据集中所有数据类别相同
+    # 数据集中所有数据类别相同
     if len(set(data_set[:, -1].T.tolist()[0])) == 1:
         print("All the same")
         return None, np.mean(data_set[:, -1])
@@ -37,12 +60,12 @@ def chooseFeat(data_set, args=(1, 4)):
                 best_feat = feat
                 best_val = val
 
-    # 停止条件2：划分数据集后方差差别不大
+    # 划分数据集后方差差别不大
     if init_var - min_val < args[0]:
         return None, np.mean(data_set[:, -1])
 
     left_data, right_data = splitSet(data_set, best_feat, best_val)
-    # 停止条件3：左子树或右子树中样本过少
+    # 左子树或右子树中样本过少
     if left_data.shape[0] < args[1] or right_data.shape[0] < args[1]:
         print("Sample too few")
         return None, np.mean(data_set[:, -1])
@@ -85,6 +108,7 @@ def postPrune(dt, data_set, err_arg):
         if not isLeaf(dt['right']):
             dt['right'] = postPrune(dt['right'], right_data, err_arg)
     if isLeaf(dt['left']) and isLeaf(dt['right']):
+        # 尝试剪枝，若剪枝后方差减小一定程度，则剪枝有效
         left_data, right_data = splitSet(data_set, dt['splitFeat'], dt['splitVal'])
         err_without_merge = (np.sum(np.power(left_data[:, -1] - dt['left'], 2)) + np.sum(np.power(right_data[:, -1] - dt['right'], 2))) / data_set.shape[0]
         leaf_avg = leafAvg(dt)
@@ -116,30 +140,6 @@ def predSet(dt, test_set):
     return y_hat
 
 
-def readData(file_name, type):
-    data_set = []
-    data_file = open(file_name, "r", encoding="utf-8")
-    data_csv = csv.reader(data_file)
-    for row in data_csv:
-        if type == 0:
-            data_set.append(row[:-2] + row[-1:])
-        else:
-            data_set.append(row[:-1])
-    data_file.close()
-    data_set = data_set[1:]
-
-    for row in data_set:
-        for col in range(len(row)):
-            row[col] = float(row[col])
-    return data_set
-
-
-def splitData(data_set, split_rate):
-    split_idx = int(len(data_set) * split_rate)
-    train_set, valid_set = data_set[:split_idx], data_set[split_idx:]
-    return train_set, valid_set
-
-
 def findDepth(dt):
     if isLeaf(dt):
         return 0
@@ -149,16 +149,15 @@ def findDepth(dt):
 
 if __name__ == "__main__":
     data_set = readData("../DATA/train.csv", 0)
-    # split_rate = 0.8
-    train_set = data_set
-    # train_set, valid_set = splitData(data_set, split_rate)
-    # valid_set = [valid_set[i][:] for i in range(len(valid_set))]
+    split_rate = 0.8
+    # train_set = data_set
+    train_set, valid_set = splitData(data_set, split_rate)
 
     # prune_set = valid_set[:len(valid_set) // 2]
     # valid_set = valid_set[len(valid_set) // 2:]
 
-    # valid_x = [valid_set[i][:-1] for i in range(len(valid_set))]
-    # valid_y = [valid_set[i][-1] for i in range(len(valid_set))]
+    valid_x = [valid_set[i][:-1] for i in range(len(valid_set))]
+    valid_y = [valid_set[i][-1] for i in range(len(valid_set))]
 
     train_set = np.mat(train_set)
     # prune_set = np.mat(prune_set)
@@ -170,30 +169,28 @@ if __name__ == "__main__":
     # dt = postPrune(dt, prune_set, 0.01)
     # print("Depth:\t", findDepth(dt))
 
-    # dt_file = open("store/tree/dt-" + str(args[0]) + "-" + str(args[1]) + "-" + str(split_rate) + "-no-prune.bin", "wb")
-    dt_file = open("store/tree/dt-" + str(args[0]) + "-" + str(args[1]) + "-no-valid-" + "-no-prune.bin", "wb")
-    dt_file.write(pickle.dumps(dt))
-    dt_file.close()
+    # # dt_file = open("store/tree/dt-" + str(args[0]) + "-" + str(args[1]) + "-" + str(split_rate) + "-no-prune.bin", "wb")
+    # dt_file = open("store/tree/dt-" + str(args[0]) + "-" + str(args[1]) + "-no-valid-" + "-no-prune.bin", "wb")
+    # dt_file.write(pickle.dumps(dt))
+    # dt_file.close()
+    #
+    # # dt_file = open("store/tree/dt-" + str(args[0]) + "-" + str(args[1]) + "-" + str(split_rate) + "-no-prune.bin", "rb")
+    # dt_file = open("store/tree/dt-" + str(args[0]) + "-" + str(args[1]) + "-no-valid-" + "-no-prune.bin", "rb")
+    # dt = pickle.loads(dt_file.read())
+    # dt_file.close()
 
-    # dt_file = open("store/tree/dt-" + str(args[0]) + "-" + str(args[1]) + "-" + str(split_rate) + "-no-prune.bin", "rb")
-    dt_file = open("store/tree/dt-" + str(args[0]) + "-" + str(args[1]) + "-no-valid-" + "-no-prune.bin", "rb")
-    dt = pickle.loads(dt_file.read())
-    dt_file.close()
+    valid_x = np.mat(valid_x)
+    valid_y_hat = predSet(dt, valid_x)
+    valid_y = np.mat(valid_y)
+    print(np.corrcoef(valid_y, valid_y_hat)[0][1])
 
-    # valid_x = np.mat(valid_x)
-    # valid_y_hat = predSet(dt, valid_x)
-    # valid_y = np.mat(valid_y)
-    # print(np.corrcoef(valid_y, valid_y_hat)[0][1])
-
-    test_set = readData("../DATA/testStudent.csv", 1)
-    test_x = np.mat(test_set)
-    test_y_hat = predSet(dt, test_x)
-    test_y_hat = [test_y_hat[0, i] for i in range(test_y_hat.shape[1])]
-    # file = open("store/predict/CART-REG-" + str(args[0]) + "-" + str(args[1]) + "-" + str(split_rate) + "-no-prune.txt", "w", encoding="utf-8")
-    file = open("store/predict/CART-REG-" + str(args[0]) + "-" + str(args[1]) + "-no-valid-" + "-no-prune.txt",
-                "w", encoding="utf-8")
-    for data in test_y_hat:
-        file.write(str(data) + '\n')
-    file.close()
-
-
+    # test_set = readData("../DATA/testStudent.csv", 1)
+    # test_x = np.mat(test_set)
+    # test_y_hat = predSet(dt, test_x)
+    # test_y_hat = [test_y_hat[0, i] for i in range(test_y_hat.shape[1])]
+    # # file = open("store/predict/CART-REG-" + str(args[0]) + "-" + str(args[1]) + "-" + str(split_rate) + "-no-prune.txt", "w", encoding="utf-8")
+    # file = open("store/predict/CART-REG-" + str(args[0]) + "-" + str(args[1]) + "-no-valid-" + "-no-prune.txt",
+    #             "w", encoding="utf-8")
+    # for data in test_y_hat:
+    #     file.write(str(data) + '\n')
+    # file.close()

@@ -2,6 +2,7 @@ import csv
 import numpy as np
 
 
+# 数据读入
 def readData(file_name, type):
     data_set = []
     data_file = open(file_name, "r", encoding="utf-8")
@@ -20,6 +21,7 @@ def readData(file_name, type):
     return data_set
 
 
+# 数据处理
 def processData(data_set, type):
     if type == 0:
         x = np.zeros((len(data_set), len(data_set[0]) - 1), dtype=float)
@@ -51,6 +53,7 @@ def processData(data_set, type):
         return x, y
 
 
+# 数据分割
 def splitData(data_set, split_rate):
     split_idx = int(len(data_set[0]) * split_rate)
     train_x, valid_x = data_set[0][:split_idx], data_set[0][split_idx:]
@@ -58,30 +61,32 @@ def splitData(data_set, split_rate):
     return (train_x, train_y), (valid_x, valid_y)
 
 
+# 线性回归
 def liner_Regression(data_x, data_y, learningRate, Loopnum):
     data_x = np.mat(data_x)
     data_y = np.mat(data_y).T
-    Weight = np.ones(shape=(1, data_x.shape[1]))
+    weights = np.ones(shape=(1, data_x.shape[1]))
     baise = np.array([[1]])
 
     loss = float('inf')
     for num in range(Loopnum):
-        WXPlusB = np.dot(data_x, Weight.T) + baise
+        result = np.dot(data_x, weights.T) + baise
         last_loss = loss
-        loss = np.dot((data_y - WXPlusB).T, data_y - WXPlusB) / data_y.shape[0]
+        loss = np.dot((data_y - result).T, data_y - result) / data_y.shape[0]
         if loss > last_loss:
             learningRate = learningRate * 0.8
             continue
-        w_gradient = -(2 / data_x.shape[0]) * np.dot((data_y - WXPlusB).T, data_x)
-        baise_gradient = -2 * np.dot((data_y - WXPlusB).T, np.ones(shape=[data_x.shape[0], 1])) / data_x.shape[0]
+        weights_gradient = -(2 / data_x.shape[0]) * np.dot((data_y - result).T, data_x)
+        baise_gradient = -2 * np.dot((data_y - result).T, np.ones(shape=[data_x.shape[0], 1])) / data_x.shape[0]
 
-        Weight = Weight - learningRate * w_gradient
+        weights = weights - learningRate * weights_gradient
         baise = baise - learningRate * baise_gradient
         if num % 50 == 0:
             print("Loss:\t", loss)
-    return Weight, baise
+    return weights, baise
 
 
+# 数据预测
 def predData(test_x, ws, b):
     test_x = np.mat(test_x)
     return np.dot(test_x, ws.T) + b

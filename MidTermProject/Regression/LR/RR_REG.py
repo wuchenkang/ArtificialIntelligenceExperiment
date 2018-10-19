@@ -2,6 +2,7 @@ import csv
 import numpy as np
 
 
+# 数据读入
 def readData(file_name, type):
     data_set = []
     data_file = open(file_name, "r", encoding="utf-8")
@@ -20,6 +21,7 @@ def readData(file_name, type):
     return data_set
 
 
+# 数据处理
 def processData(data_set, type):
     if type == 0:
         x = np.zeros((len(data_set), len(data_set[0]) - 1), dtype=float)
@@ -51,6 +53,7 @@ def processData(data_set, type):
         return x, y
 
 
+# 数据分割
 def splitData(data_set, split_rate):
     split_idx = int(len(data_set[0]) * split_rate)
     train_x, valid_x = data_set[0][:split_idx], data_set[0][split_idx:]
@@ -58,6 +61,7 @@ def splitData(data_set, split_rate):
     return (train_x, train_y), (valid_x, valid_y)
 
 
+# 岭回归
 def ridgeRegres(x_set, y_set, k):
     x_mat = np.mat(x_set)
     y_mat = np.mat(y_set).T
@@ -71,6 +75,7 @@ def ridgeRegres(x_set, y_set, k):
     return ws
 
 
+# 数据预测
 def predData(test_x, ws):
     test_x = np.mat(test_x)
     return np.dot(test_x, ws).T
