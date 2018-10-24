@@ -62,7 +62,7 @@ def splitData(data_set, split_rate):
 
 
 # 岭回归
-def ridgeRegres(x_set, y_set, k):
+def calculateWeight(x_set, y_set, k):
     x_mat = np.mat(x_set)
     y_mat = np.mat(y_set).T
     lam = np.exp(k)
@@ -81,21 +81,22 @@ def predData(test_x, ws):
     return np.dot(test_x, ws).T
 
 
-# data_set = readData("../DATA/train.csv", 0)
-# data_set = processData(data_set, 0)
-# train_set, valid_set = splitData(data_set, 0.9)
-# ws = ridgeRegres(train_set[0], train_set[1], -30)
-# pred = predData(valid_set[0], ws)
-# real = np.mat(valid_set[1])
-# print("Corr:\t", np.corrcoef(pred, real)[0][1])
-train_set = readData("../DATA/train.csv", 0)
-train_set = processData(train_set, 0)
-ws = ridgeRegres(train_set[0], train_set[1], -30)
-test_x = readData("../DATA/testStudent.csv", 1)
-test_x = processData(test_x, 1)
-test_y = predData(test_x, ws)
-test_y = [test_y[0, i] for i in range(test_y.shape[1])]
-file = open("RR-REG.txt", "w", encoding="utf-8")
-for data in test_y:
-    file.write(str(data) + '\n')
-file.close()
+data_set = readData("../DATA/train.csv", 0)
+data_set = processData(data_set, 0)
+train_set, valid_set = splitData(data_set, 0.9)
+for i in range(-20, 20):
+    ws = calculateWeight(train_set[0], train_set[1], i)
+    pred = predData(valid_set[0], ws)
+    real = np.mat(valid_set[1])
+    print("Lambda", i, "\tCorr:\t", np.corrcoef(pred, real)[0][1])
+# train_set = readData("../DATA/train.csv", 0)
+# train_set = processData(train_set, 0)
+# ws = calculateWeight(train_set[0], train_set[1], -30)
+# test_x = readData("../DATA/testStudent.csv", 1)
+# test_x = processData(test_x, 1)
+# test_y = predData(test_x, ws)
+# test_y = [test_y[0, i] for i in range(test_y.shape[1])]
+# file = open("RR-REG.txt", "w", encoding="utf-8")
+# for data in test_y:
+#     file.write(str(data) + '\n')
+# file.close()

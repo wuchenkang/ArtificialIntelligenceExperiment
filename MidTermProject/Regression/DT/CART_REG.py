@@ -69,7 +69,6 @@ def chooseFeat(data_set, args=(1, 4)):
     if left_data.shape[0] < args[1] or right_data.shape[0] < args[1]:
         print("Sample too few")
         return None, np.mean(data_set[:, -1])
-
     return best_feat, best_val
 
 
@@ -162,9 +161,9 @@ if __name__ == "__main__":
     train_set = np.mat(train_set)
     # prune_set = np.mat(prune_set)
 
-    args = (0.005, 80)
-    dt = buildTree(train_set, args)
-    print("Depth:\t", findDepth(dt))
+    args = (0.02, 128)
+    # dt = buildTree(train_set, args)
+    # print("Depth:\t", findDepth(dt))
 
     # dt = postPrune(dt, prune_set, 0.01)
     # print("Depth:\t", findDepth(dt))
@@ -174,10 +173,10 @@ if __name__ == "__main__":
     # dt_file.write(pickle.dumps(dt))
     # dt_file.close()
     #
-    # # dt_file = open("store/tree/dt-" + str(args[0]) + "-" + str(args[1]) + "-" + str(split_rate) + "-no-prune.bin", "rb")
+    dt_file = open("store/tree/dt-" + str(args[0]) + "-" + str(args[1]) + "-" + str(split_rate) + "-no-prune.bin", "rb")
     # dt_file = open("store/tree/dt-" + str(args[0]) + "-" + str(args[1]) + "-no-valid-" + "-no-prune.bin", "rb")
-    # dt = pickle.loads(dt_file.read())
-    # dt_file.close()
+    dt = pickle.loads(dt_file.read())
+    dt_file.close()
 
     valid_x = np.mat(valid_x)
     valid_y_hat = predSet(dt, valid_x)

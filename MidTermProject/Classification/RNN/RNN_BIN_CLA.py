@@ -80,9 +80,7 @@ class LSTMModel():
 
         # 加入输入
         with tf.name_scope('Inputs'):
-            self.inputs = tf.placeholder(tf.int32, [None, None], name='inputs')
-            self.labels = tf.placeholder(tf.int32, [None, None], name='labels')
-            self.keep_prob = tf.placeholder(tf.float32, name='keep_prob')
+            self.addInput()
 
         # 加入嵌入层，将一维词索引转换为二维词向量
         with tf.name_scope('EmbeddingLayer'):
@@ -94,7 +92,7 @@ class LSTMModel():
 
         # 加入全连接层，将LSTM网络层结果映射到最终输出
         with tf.name_scope('Outputs'):
-            self.addFull()
+            self.addOutput()
 
         # 计算损失函数
         with tf.name_scope('Cost'):
@@ -108,6 +106,11 @@ class LSTMModel():
         with tf.name_scope('Optimizer'):
             self.addOptimizer()
 
+    def addInput(self):
+        self.inputs = tf.placeholder(tf.int32, [None, None], name='inputs')
+        self.labels = tf.placeholder(tf.int32, [None, None], name='labels')
+        self.keep_prob = tf.placeholder(tf.float32, name='keep_prob')
+
     def addEmbedding(self):
         self.embedding = tf.Variable(tf.random_uniform((self.voc_count, self.embedding_size), -1, 1))
         self.embeded = tf.nn.embedding_lookup(self.embedding, self.inputs)
@@ -119,7 +122,7 @@ class LSTMModel():
         self.initial_state = self.cell.zero_state(batch_size, tf.float32)
         self.outputs, self.final_state = tf.nn.dynamic_rnn(self.cell, self.embeded, initial_state=self.initial_state)
 
-    def addFull(self):
+    def addOutput(self):
         self.predictions = tf.contrib.layers.fully_connected(self.outputs[:, -1], 1, activation_fn=tf.sigmoid)
 
     def computeCost(self):
@@ -135,12 +138,11 @@ class LSTMModel():
         self.optimizer = tf.train.AdamOptimizer(self.learning_rate).minimize(self.cost)
 
 
-epochs = 10
-
 voc_to_index, feats, labels = readData()
 voc_count = len(voc_to_index)
 (train_x, train_y), (valid_x, valid_y), (test_x, test_y) = splitData(feats, labels, 0.8)
 
+epochs = 10
 cell_size = 128
 num_layer = 2
 batch_size = 500
@@ -152,7 +154,7 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 saver = tf.train.Saver()
 writer = tf.summary.FileWriter("logs", sess.graph)
-iteration = 1
+iteration = 0
 for e in range(epochs):
     state = sess.run(model.initial_state)
     for i, (x, y) in enumerate(get_batches(train_x, train_y, batch_size), 1):
@@ -164,12 +166,12 @@ for e in range(epochs):
         }
         loss, state, _ = sess.run([model.cost, model.final_state, model.optimizer], feed_dict=feed)
 
-        if iteration % 5 == 0:
+        if iteration % 4 == 0:
             print("Epoch: {}/{}".format(e, epochs),
                   "Iteration: {}".format(iteration),
-                  "Train loss: {:.3f}".format(loss))
+                  "Train loss: {:.4f}".format(loss))
 
-        if iteration % 25 == 0:
+        if iteration % 24 == 0:
             valid_accuracy = []
             valid_state = sess.run(model.cell.zero_state(batch_size, tf.float32))
             for x, y in get_batches(valid_x, valid_y, batch_size):
@@ -181,10 +183,9 @@ for e in range(epochs):
                 }
                 batch_accuracy, valid_state = sess.run([model.accuracy, model.final_state], feed_dict=feed)
                 valid_accuracy.append(batch_accuracy)
-            print("Val acc: {:.3f}".format(np.mean(valid_accuracy)))
+            print("Val acc: {:.4f}".format(np.mean(valid_accuracy)))
         iteration += 1
-    saver.save(sess, "checkpoints/model.ckpt", e)
-
+saver.save(sess, "checkpoints/model.ckpt")
 
 test_acc = []
 saver.restore(sess, tf.train.latest_checkpoint('checkpoints'))
@@ -198,4 +199,4 @@ for i, (x, y) in enumerate(get_batches(test_x, test_y, batch_size), 1):
     }
     batch_accuracy, test_state = sess.run([model.accuracy, model.final_state], feed_dict=feed)
     test_acc.append(batch_accuracy)
-print("Test accuracy: {:.3f}".format(np.mean(test_acc)))
+print("Test accuracy: {:.4f}".format(np.mean(test_acc)))
