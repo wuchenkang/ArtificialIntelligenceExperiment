@@ -2,6 +2,7 @@ import csv
 import pickle
 import numpy as np
 
+
 def readData(file_name, type):
     data_set = []
     data_file = open(file_name, "r", encoding="utf-8")
