@@ -116,6 +116,49 @@ def IDDFS(data_mat, start, end):
     return None
 
 
+def UCS(data_mat, cost_map, start, end):
+    m = len(data_mat)
+    n = len(data_mat[0])
+    explored = []
+    frontier = queue.PriorityQueue()
+    cost = 0
+
+    frontier.put((cost, (start, [])))
+    explored.append(start)
+
+    while not frontier.empty():
+        cost, state = frontier.get()
+        current, path = state
+        path = path[:] + [current]
+        if current == end:
+            return path
+        if current[0] - 1 >= 0 and not (current[0] - 1, current[1]) in explored \
+                and data_mat[current[0] - 1][current[1]] != '1':
+            up = (current[0] - 1, current[1])
+            cost_up = cost + cost_map[current][up]
+            frontier.put((cost_up, (up, path)))
+            explored.append(up)
+        if current[0] + 1 < m and not (current[0] + 1, current[1]) in explored \
+                and data_mat[current[0] + 1][current[1]] != '1':
+            down = (current[0] + 1, current[1])
+            cost_down = cost + cost_map[current][down]
+            frontier.put((cost_down, (down, path)))
+            explored.append(down)
+        if current[1]-1 >= 0 and not (current[0], current[1]-1) in explored \
+                and data_mat[current[0]][current[1]-1] != '1':
+            left = (current[0], current[1]-1)
+            cost_left = cost + cost_map[current][left]
+            frontier.put((cost_left, (left, path)))
+            explored.append(left)
+        if current[1] + 1 < n and not (current[0], current[1] + 1) in explored \
+                and data_mat[current[0]][current[1] + 1] != '1':
+            right = (current[0], current[1] + 1)
+            cost_right = cost + cost_map[current][right]
+            frontier.put((cost_right, (right, path)))
+            explored.append(right)
+    return None
+
+
 print("Maze Explore Problem")
 data_mat = PreProcess.file_to_matrix('Data.txt')
 start, end = PreProcess.find_goal(data_mat)
@@ -154,3 +197,18 @@ if path is not None:
 else:
     print("No valid path found!")
 
+cost_map = {}
+for i in range(len(data_mat)):
+    for j in range(len(data_mat[0])):
+        cost_map[(i, j)] = {}
+        cost_map[(i, j)][(i - 1, j)] = 1
+        cost_map[(i, j)][(i + 1, j)] = 1
+        cost_map[(i, j)][(i, j - 1)] = 1
+        cost_map[(i, j)][(i, j + 1)] = 1
+print("Search Algorithm:\tUCS")
+path = UCS(data_mat, cost_map, start, end)
+if path is not None:
+    print("\tPath Length:\t", len(path) - 1)
+    print("\tPath:\t", path)
+else:
+    print("No valid path found!")
