@@ -19,6 +19,6 @@ def find_goal(data_mat):
                 start = (i, j)
             elif data_mat[i][j] == 'E':
                 end = (i, j)
-    if start == None or end == None:
+    if start is None or end is None:
         raise RuntimeError('No start node or end node specified.')
     return start, end
