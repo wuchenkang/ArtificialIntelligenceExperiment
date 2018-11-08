@@ -1,6 +1,8 @@
 import queue
 
 
+init = None
+final = None
 manhattan_table = None
 
 
@@ -12,14 +14,14 @@ def cal_manhattan(size):
             manhattan_table[i][j] = abs(i // size - j // size) + abs(i % size - j % size)
 
 
-def cal_heuristic(state):
+def cal_heuristic(current_state):
     global manhattan_table
     cost = 0
-    size = state.size
+    size = current_state.size
     n = size * size
     for i in range(size):
         for j in range(size):
-            temp = state.state[i][j]
+            temp = current_state.state[i][j]
             cost += manhattan_table[i*size+j][n-temp-1]
     return cost
 
@@ -108,34 +110,35 @@ class State:
         return self.size == other.size and self.eval < other.eval
 
 
-def a_star(init_state):
+def a_star(init_state, final_state):
     opened = queue.PriorityQueue()
     closed = []
 
-    opened.put((init_state.eval, init_state))
+    opened.put(init_state)
 
     while not opened.empty():
-        _, state = opened.get()
+        state = opened.get()
         closed.append(state)
 
-        if state.heur == 0:
-            ops = []
+        if state == final_state:
+            path = []
             current = state
             while current is not None:
-                ops = [current.state] + ops
+                path = [current.state] + path
                 current = current.parent
-            return ops
+            return path
 
         neighbors = state.get_neighbors()
         for neighbor in neighbors:
             if neighbor not in closed:
-                opened.put((neighbor.eval, neighbor))
-    return 'NoPath!'
+                opened.put(neighbor)
+    return None
 
 
 if __name__ == '__main__':
-    # cal_manhattan(3)
-    # init_state = State(3, [[1, 2, 3], [4, 5, 6], [7, 8, 0]], (2, 2), 0, None)
-    cal_manhattan(2)
-    init_state = State(2, [[3,0], [1, 2]], (0,1),0, None)
-    print(a_star(init_state))
+    cal_manhattan(4)
+    init = State(4, [[11, 3, 1, 7], [4, 6, 8, 2], [15, 9, 10, 13], [14, 12, 5, 0]], (3, 3), 0, None)
+    final = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, None)
+    path = a_star(init, final)
+    for node in path:
+        print(node)
