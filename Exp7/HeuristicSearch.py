@@ -1,5 +1,7 @@
 import queue
 import random
+import sys
+
 
 init = None
 final = None
@@ -28,7 +30,7 @@ def cal_heuristic(current_state):
 
 class State:
     def __init__(self, size, state, pivot, cost, parent):
-        if state[pivot[0]][pivot[1]] != 0:
+        if size != len(state) or size != len(state[0]) or state[pivot[0]][pivot[1]] != 0:
             raise RuntimeError('State not consistent!')
 
         self.size = size
@@ -101,10 +103,7 @@ class State:
         return neighbors
 
     def __eq__(self, other):
-        if self.size == other.size and self.state == other.state and self.pivot == other.pivot:
-            return True
-        else:
-            return False
+        return self.state == other.state
 
     def __lt__(self, other):
         return self.size == other.size and self.eval < other.eval
@@ -135,18 +134,54 @@ def a_star(init_state, final_state):
     return None
 
 
+def dls(current_state, final_state, max_eval, path):
+    if current_state.eval > max_eval:
+        return current_state.eval
+    if current_state.state in path:
+        return None
+    path = path + [current_state.state]
+    if current_state == final_state:
+        return path
+    neighbors = current_state.get_neighbors()
+    min_eval = sys.maxsize
+    for neighbor in neighbors:
+        neighbor_path = dls(neighbor, final_state, max_eval, path)
+        if isinstance(neighbor_path, list):
+            return neighbor_path
+        elif isinstance(neighbor_path, int):
+            min_eval = min(min_eval, neighbor_path)
+        else:
+            continue
+    if min_eval == sys.maxsize:
+        return None
+    else:
+        return min_eval
+
+
+def id_a_star(init_state, final_state):
+    max_eval = init_state.eval
+    while True:
+        path = dls(init_state, final_state, max_eval, [])
+        if isinstance(path, list):
+            return path
+        elif isinstance(path, int):
+            max_eval = path
+        else:
+            return None
+
+
 # if __name__ == '__main__':
 #     cal_manhattan(4)
-#     init = State(4, [[11, 3, 1, 7], [4, 6, 8, 2], [15, 9, 10, 13], [14, 12, 5, 0]], (3, 3), 0, None)
-#     final = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, None)
-#     path = a_star(init, final)
+#     init = State(2, [[2, 1], [3, 0]], (1, 1), 0, None)
+#     final = State(2, [[3, 2], [1, 0]], (1, 1), 0, None)
+#     path = id_a_star(init, final)
 #     for node in path:
 #         print(node)
 if __name__ == '__main__':
     cal_manhattan(4)
     s = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, None)
     count = 0
-    for i in range(150):
+    for i in range(120):
         t = random.randint(0, 3)
         if t == 0 and s.pivot[0] > 0:
             s = s.get_up()
@@ -160,13 +195,15 @@ if __name__ == '__main__':
         elif t == 3 and s.pivot[1] < s.size - 1:
             s = s.get_right()
             count += 1
-    init = State(4, s.state, s.pivot, 0, None)
     print(count)
-    print(init.state)
+    print(s.state)
+    # init = State(4, s.state, s.pivot, 0, None)
+    init = State(4, [[10, 11, 13, 8], [15, 9, 6, 12], [3, 7, 14, 5], [2, 0, 1, 4]], (3, 1), 0, None)
     print()
     final = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, None)
     path = a_star(init, final)
+    print(len(path))
     for node in path:
         print(node)
 
-# [[15, 12, 8, 13], [11, 14, 2, 1], [7, 6, 5, 9], [3, 10, 0, 4]]
+# # [[15, 12, 8, 13], [11, 14, 2, 1], [7, 6, 5, 9], [3, 10, 0, 4]]
