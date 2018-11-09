@@ -1,5 +1,5 @@
 import queue
-
+import random
 
 init = None
 final = None
@@ -135,10 +135,38 @@ def a_star(init_state, final_state):
     return None
 
 
+# if __name__ == '__main__':
+#     cal_manhattan(4)
+#     init = State(4, [[11, 3, 1, 7], [4, 6, 8, 2], [15, 9, 10, 13], [14, 12, 5, 0]], (3, 3), 0, None)
+#     final = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, None)
+#     path = a_star(init, final)
+#     for node in path:
+#         print(node)
 if __name__ == '__main__':
     cal_manhattan(4)
-    init = State(4, [[11, 3, 1, 7], [4, 6, 8, 2], [15, 9, 10, 13], [14, 12, 5, 0]], (3, 3), 0, None)
+    s = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, None)
+    count = 0
+    for i in range(150):
+        t = random.randint(0, 3)
+        if t == 0 and s.pivot[0] > 0:
+            s = s.get_up()
+            count += 1
+        elif t == 1 and s.pivot[0] < s.size - 1:
+            s = s.get_down()
+            count += 1
+        elif t == 2 and s.pivot[1] > 0:
+            s = s.get_left()
+            count += 1
+        elif t == 3 and s.pivot[1] < s.size - 1:
+            s = s.get_right()
+            count += 1
+    init = State(4, s.state, s.pivot, 0, None)
+    print(count)
+    print(init.state)
+    print()
     final = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, None)
     path = a_star(init, final)
     for node in path:
         print(node)
+
+# [[15, 12, 8, 13], [11, 14, 2, 1], [7, 6, 5, 9], [3, 10, 0, 4]]
