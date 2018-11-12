@@ -175,7 +175,7 @@ def a_star(init_state, final_state):
             path = []
             current = state
             while current is not None:
-                path = [current.state] + path
+                path = [current] + path
                 current = current.parent
             return path
 
@@ -194,18 +194,14 @@ def dls(current_state, final_state, bound, path):
     # 估价函数达到阈值，剪枝，返回目前超过阈值的估价函数
     if current_state.eval > bound:
         return current_state.eval
-
     # 节点被路径检测剪枝
-    if current_state.state in path:
+    if current_state in path:
         return None
-
     # 路径中加入当前节点
-    path = path + [current_state.state]
-
+    path = path + [current_state]
     # 当前节点就是目标节点，返回路径
     if current_state == final_state:
         return path
-
     # 对于当前节点的所有邻节点，执行深度优先搜索
     neighbors = current_state.get_neighbors()
     min_eval = sys.maxsize
@@ -220,7 +216,6 @@ def dls(current_state, final_state, bound, path):
         # 邻节点的深度优先搜索返回None，对应路径不存在
         else:
             continue
-
     # 若未更新超过阈值的最小估价函数值，说明邻节点均返回None，对应路径不存在
     if min_eval == sys.maxsize:
         return None
@@ -234,13 +229,33 @@ def id_a_star(init_state, final_state):
     bound = init_state.eval
     while True:
         path = dls(init_state, final_state, bound, [])
+        # 找到最佳路径，返回该最佳路径
         if isinstance(path, list):
             return path
+        # 返回大于当前阈值的最小估价函数值，以此更新DLS阈值
         elif isinstance(path, int) or isinstance(path, float):
             bound = path
+        # 找不到路径
         else:
             return None
 
+
+def print_state(state_obj):
+    for i in range(len(state_obj.state)):
+        print('+---+---+---+---+')
+        for j in range(len(state_obj.state[0])):
+            print('|', '{:2}'.format(str(state_obj.state[i][j])), end='')
+        print('|')
+    print('+---+---+---+---+')
+
+
+def print_path(path):
+    for i in range(len(path)-1):
+        print(' {:2}'.format(str(path[i+1].state[path[i].pivot[0]][path[i].pivot[1]])), end='')
+        if i % 6 == 5:
+            print()
+    if(len(path) - 1 % 6 != 0):
+        print()
 
 if __name__ == '__main__':
     cal_manhattan(4)
@@ -249,7 +264,7 @@ if __name__ == '__main__':
     cal_difference(4)
     s = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, 1, None)
     count = 0
-    for i in range(20):
+    for i in range(100):
         t = random.randint(0, 3)
         if t == 0 and s.pivot[0] > 0:
             s = s.get_up()
@@ -263,23 +278,24 @@ if __name__ == '__main__':
         elif t == 3 and s.pivot[1] < s.size - 1:
             s = s.get_right()
             count += 1
-    print(count)
-    print(s.state)
+    print('Random shuffle with ', count, 'moves.')
 
+    init = State(4, s.state, s.pivot, 0, 1, None)
+    final = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, 1, None)
+
+    print('Initial State：')
+    print_state(init)
     print()
-    init = State(4, s.state, s.pivot, 0, 2, None)
-    final = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, 2, None)
+
+    print('Use manhattan distance as heuristic function.\n')
+
+    path = a_star(init, final)
+    print('Solution by A* with ', len(path) - 1, ' moves')
+    print_path(path)
+    print()
 
     path = id_a_star(init, final)
-    print(len(path)-1)
-    for node in path:
-        print(node)
-    print()
-    init = State(4, s.state, s.pivot, 0, -1, None)
-    final = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, -1, None)
-    path = a_star(init, final)
-    print(len(path) - 1)
-    for node in path:
-        print(node)
+    print('Solution by IDA* with ', len(path) - 1, ' moves')
+    print_path(path)
 
 # # [[15, 12, 8, 13], [11, 14, 2, 1], [7, 6, 5, 9], [3, 10, 0, 4]]
