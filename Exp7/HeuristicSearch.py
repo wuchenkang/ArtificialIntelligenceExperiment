@@ -1,11 +1,12 @@
 import queue
 import random
+import math
 import sys
 
 
-init = None
-final = None
 manhattan_table = None
+chebyshev_table = None
+euclidean_table = None
 
 
 def cal_manhattan(size):
@@ -16,20 +17,46 @@ def cal_manhattan(size):
             manhattan_table[i][j] = abs(i // size - j // size) + abs(i % size - j % size)
 
 
-def cal_heuristic(current_state):
+def cal_chebyshev(size):
+    global chebyshev_table
+    chebyshev_table = [[0 for _ in range(size * size)] for _ in range(size * size)]
+    for i in range(size * size):
+        for j in range(size * size):
+            chebyshev_table[i][j] = max(abs(i // size - j // size), abs(i % size - j % size))
+
+
+def cal_euclidean(size):
+    global euclidean_table
+    euclidean_table = [[0 for _ in range(size * size)] for _ in range(size * size)]
+    for i in range(size * size):
+        for j in range(size * size):
+            euclidean_table[i][j] = int(math.sqrt((i // size - j // size)**2 + (i % size - j % size)**2))
+
+
+def cal_heuristic(current_state, type):
     global manhattan_table
+    global chebyshev_table
+    global euclidean_table
     cost = 0
     size = current_state.size
     n = size * size
+    if type == 0:
+        table = chebyshev_table
+    elif type == 1:
+        table = manhattan_table
+    elif type == 2:
+        table = euclidean_table
+    else:
+        raise RuntimeError('Invalid parameter - type！')
     for i in range(size):
         for j in range(size):
             temp = current_state.state[i][j]
-            cost += manhattan_table[i*size+j][n-temp-1]
+            cost += table[i*size+j][n-temp-1]
     return cost
 
 
 class State:
-    def __init__(self, size, state, pivot, cost, parent):
+    def __init__(self, size, state, pivot, cost, type, parent):
         if size != len(state) or size != len(state[0]) or state[pivot[0]][pivot[1]] != 0:
             raise RuntimeError('State not consistent!')
 
@@ -37,7 +64,8 @@ class State:
         self.state = state
         self.pivot = pivot
         self.cost = cost
-        self.heur = cal_heuristic(self)
+        self.type = type
+        self.heur = cal_heuristic(self, type)
         self.eval = self.cost + self.heur
 
         self.parent = parent
@@ -52,7 +80,7 @@ class State:
         next_state[self.pivot[0]-1][self.pivot[1]] = next_state[self.pivot[0]][self.pivot[1]]
         next_state[self.pivot[0]][self.pivot[1]] = temp
 
-        return State(next_size, next_state, next_pivot, next_cost, self)
+        return State(next_size, next_state, next_pivot, next_cost, self.type, self)
 
     def get_down(self):
         next_size = self.size
@@ -64,7 +92,7 @@ class State:
         next_state[self.pivot[0] + 1][self.pivot[1]] = next_state[self.pivot[0]][self.pivot[1]]
         next_state[self.pivot[0]][self.pivot[1]] = temp
 
-        return State(next_size, next_state, next_pivot, next_cost, self)
+        return State(next_size, next_state, next_pivot, next_cost, self.type, self)
 
     def get_left(self):
         next_size = self.size
@@ -76,7 +104,7 @@ class State:
         next_state[self.pivot[0]][self.pivot[1]-1] = next_state[self.pivot[0]][self.pivot[1]]
         next_state[self.pivot[0]][self.pivot[1]] = temp
 
-        return State(next_size, next_state, next_pivot, next_cost, self)
+        return State(next_size, next_state, next_pivot, next_cost, self.type, self)
 
     def get_right(self):
         next_size = self.size
@@ -88,7 +116,7 @@ class State:
         next_state[self.pivot[0]][self.pivot[1] + 1] = next_state[self.pivot[0]][self.pivot[1]]
         next_state[self.pivot[0]][self.pivot[1]] = temp
 
-        return State(next_size, next_state, next_pivot, next_cost, self)
+        return State(next_size, next_state, next_pivot, next_cost, self.type, self)
 
     def get_neighbors(self):
         neighbors = []
@@ -170,18 +198,13 @@ def id_a_star(init_state, final_state):
             return None
 
 
-# if __name__ == '__main__':
-#     cal_manhattan(4)
-#     init = State(2, [[2, 1], [3, 0]], (1, 1), 0, None)
-#     final = State(2, [[3, 2], [1, 0]], (1, 1), 0, None)
-#     path = id_a_star(init, final)
-#     for node in path:
-#         print(node)
 if __name__ == '__main__':
     cal_manhattan(4)
-    s = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, None)
+    cal_chebyshev(4)
+    cal_euclidean(4)
+    s = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, 1, None)
     count = 0
-    for i in range(120):
+    for i in range(100):
         t = random.randint(0, 3)
         if t == 0 and s.pivot[0] > 0:
             s = s.get_up()
@@ -197,12 +220,18 @@ if __name__ == '__main__':
             count += 1
     print(count)
     print(s.state)
-    # init = State(4, s.state, s.pivot, 0, None)
-    init = State(4, [[10, 11, 13, 8], [15, 9, 6, 12], [3, 7, 14, 5], [2, 0, 1, 4]], (3, 1), 0, None)
+
     print()
-    final = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, None)
+    init = State(4, s.state, s.pivot, 0, 2, None)
+    final = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, 2, None)
+
+    path = id_a_star(init, final)
+    print(len(path)-1)
+    for node in path:
+        print(node)
+    print()
     path = a_star(init, final)
-    print(len(path))
+    print(len(path) - 1)
     for node in path:
         print(node)
 
