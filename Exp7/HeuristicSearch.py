@@ -190,9 +190,9 @@ def a_star(init_state, final_state):
 
 
 # 特殊的深度受限搜索
-def dls(current_state, final_state, max_eval, path):
+def dls(current_state, final_state, bound, path):
     # 估价函数达到阈值，剪枝，返回目前超过阈值的估价函数
-    if current_state.eval > max_eval:
+    if current_state.eval > bound:
         return current_state.eval
 
     # 节点被路径检测剪枝
@@ -210,7 +210,7 @@ def dls(current_state, final_state, max_eval, path):
     neighbors = current_state.get_neighbors()
     min_eval = sys.maxsize
     for neighbor in neighbors:
-        neighbor_path = dls(neighbor, final_state, max_eval, path)
+        neighbor_path = dls(neighbor, final_state, bound, path)
         # 邻节点的深度优先搜索返回路径，说明搜索完成，返回路径
         if isinstance(neighbor_path, list):
             return neighbor_path
@@ -231,13 +231,13 @@ def dls(current_state, final_state, max_eval, path):
 
 # IDA*搜索算法
 def id_a_star(init_state, final_state):
-    max_eval = init_state.eval
+    bound = init_state.eval
     while True:
-        path = dls(init_state, final_state, max_eval, [])
+        path = dls(init_state, final_state, bound, [])
         if isinstance(path, list):
             return path
         elif isinstance(path, int) or isinstance(path, float):
-            max_eval = path
+            bound = path
         else:
             return None
 
