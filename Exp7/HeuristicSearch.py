@@ -10,6 +10,7 @@ euclidean_table = None
 difference_table = None
 
 steps = 0
+factor = 1
 
 # 曼哈顿距离表
 def cal_manhattan(size):
@@ -54,6 +55,7 @@ def cal_heuristic(current_state, type):
     global chebyshev_table
     global euclidean_table
     global difference_table
+    global factor
     cost = 0
     size = current_state.size
     n = size * size
@@ -72,7 +74,7 @@ def cal_heuristic(current_state, type):
             temp = current_state.state[i][j]
             if temp == 0:
                 continue
-            cost += table[i*size+j][n-temp-1]
+            cost += factor * table[i*size+j][n-temp-1]
     return cost
 
 
@@ -270,26 +272,31 @@ if __name__ == '__main__':
     cal_chebyshev(4)
     cal_euclidean(4)
     cal_difference(4)
-    # s = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, 1, None)
-    # count = 0
-    # for i in range(120):
-    #     t = random.randint(0, 3)
-    #     if t == 0 and s.pivot[0] > 0:
-    #         s = s.get_up()
-    #         count += 1
-    #     elif t == 1 and s.pivot[0] < s.size - 1:
-    #         s = s.get_down()
-    #         count += 1
-    #     elif t == 2 and s.pivot[1] > 0:
-    #         s = s.get_left()
-    #         count += 1
-    #     elif t == 3 and s.pivot[1] < s.size - 1:
-    #         s = s.get_right()
-    #         count += 1
-    # print('Random shuffle with ', count, 'moves.')
+
+    s = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, 1, None)
+    count = 0
+    for i in range(100):
+        t = random.randint(0, 3)
+        if t == 0 and s.pivot[0] > 0:
+            s = s.get_up()
+            count += 1
+        elif t == 1 and s.pivot[0] < s.size - 1:
+            s = s.get_down()
+            count += 1
+        elif t == 2 and s.pivot[1] > 0:
+            s = s.get_left()
+            count += 1
+        elif t == 3 and s.pivot[1] < s.size - 1:
+            s = s.get_right()
+            count += 1
+    print('Random shuffle with ', count, 'moves.')
 
     init = State(4, s.state, s.pivot, 0, 1, None)
     final = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, 1, None)
+
+    # type = 1
+    # init = State(4, [[0, 10, 14, 8], [15, 12, 9, 6], [11, 4, 13, 1], [7, 3, 2, 5]], (0, 0), 0, type, None)
+    # final = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, type, None)
 
     # print(init.state)
     print('Initial State：')
@@ -298,21 +305,35 @@ if __name__ == '__main__':
 
     print('Use manhattan distance as heuristic function.\n')
 
-    # start_time = time.time()
-    # path = a_star(init, final)
-    # end_time = time.time()
-    # print('Solution by A* with ', len(path) - 1, ' moves')
-    # print_path(path)
-    # print('Search steps:\t', steps)
-    # print('Used time:\t', end_time - start_time, 's')
-    # print()
+    start_time = time.time()
+    path = a_star(init, final)
+    end_time = time.time()
+    if path is not None:
+        print('Solution by A* with ', len(path) - 1, ' moves')
+        print_path(path)
+    else:
+        print('No valid path.')
+    print('Search steps:\t', steps)
+    print('Used time:\t', end_time - start_time, 's')
+    print()
 
     start_time = time.time()
     path = id_a_star(init, final)
     end_time = time.time()
-    print('Solution by IDA* with ', len(path) - 1, ' moves')
-    print_path(path)
+    if path is not None:
+        print('Solution by IDA* with ', len(path) - 1, ' moves')
+        print_path(path)
+    else:
+        print('No valid path.')
     print('Search steps:\t', steps)
     print('Used time:\t', end_time - start_time, 's')
 
-# # [[15, 12, 8, 13], [11, 14, 2, 1], [7, 6, 5, 9], [3, 10, 0, 4]]
+    # factor = 0.5
+    # for i in range(16):
+    #     path = id_a_star(init, final)
+    #     print('Factor:\t', factor)
+    #     print(len(path) - 1, ' moves')
+    #     print('Search steps:\t', steps)
+    #     print()
+    #     factor += 0.1
+
