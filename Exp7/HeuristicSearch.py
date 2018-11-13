@@ -2,13 +2,14 @@ import queue
 import random
 import math
 import sys
-
+import time
 
 manhattan_table = None
 chebyshev_table = None
 euclidean_table = None
 difference_table = None
 
+steps = 0
 
 # 曼哈顿距离表
 def cal_manhattan(size):
@@ -166,7 +167,10 @@ def a_star(init_state, final_state):
     opened.put(init_state)          # 初始节点加入开启列表
 
     # 重复循环直到开启列表为空
+    global steps
+    steps = 0
     while not opened.empty():
+        steps += 1
         state = opened.get()        # 从开启列表中获取评价函数f(n)最小的节点n
         closed.append(state)        # 将其加入关闭列表
 
@@ -197,6 +201,8 @@ def dls(current_state, final_state, bound, path):
     # 节点被路径检测剪枝
     if current_state in path:
         return None
+    global steps
+    steps += 1
     # 路径中加入当前节点
     path = path + [current_state]
     # 当前节点就是目标节点，返回路径
@@ -227,6 +233,8 @@ def dls(current_state, final_state, bound, path):
 # IDA*搜索算法
 def id_a_star(init_state, final_state):
     bound = init_state.eval
+    global steps
+    steps = 0
     while True:
         path = dls(init_state, final_state, bound, [])
         # 找到最佳路径，返回该最佳路径
@@ -262,40 +270,49 @@ if __name__ == '__main__':
     cal_chebyshev(4)
     cal_euclidean(4)
     cal_difference(4)
-    s = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, 1, None)
-    count = 0
-    for i in range(100):
-        t = random.randint(0, 3)
-        if t == 0 and s.pivot[0] > 0:
-            s = s.get_up()
-            count += 1
-        elif t == 1 and s.pivot[0] < s.size - 1:
-            s = s.get_down()
-            count += 1
-        elif t == 2 and s.pivot[1] > 0:
-            s = s.get_left()
-            count += 1
-        elif t == 3 and s.pivot[1] < s.size - 1:
-            s = s.get_right()
-            count += 1
-    print('Random shuffle with ', count, 'moves.')
+    # s = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, 1, None)
+    # count = 0
+    # for i in range(120):
+    #     t = random.randint(0, 3)
+    #     if t == 0 and s.pivot[0] > 0:
+    #         s = s.get_up()
+    #         count += 1
+    #     elif t == 1 and s.pivot[0] < s.size - 1:
+    #         s = s.get_down()
+    #         count += 1
+    #     elif t == 2 and s.pivot[1] > 0:
+    #         s = s.get_left()
+    #         count += 1
+    #     elif t == 3 and s.pivot[1] < s.size - 1:
+    #         s = s.get_right()
+    #         count += 1
+    # print('Random shuffle with ', count, 'moves.')
 
     init = State(4, s.state, s.pivot, 0, 1, None)
     final = State(4, [[15, 14, 13, 12], [11, 10, 9, 8], [7, 6, 5, 4], [3, 2, 1, 0]], (3, 3), 0, 1, None)
 
+    # print(init.state)
     print('Initial State：')
     print_state(init)
     print()
 
     print('Use manhattan distance as heuristic function.\n')
 
-    path = a_star(init, final)
-    print('Solution by A* with ', len(path) - 1, ' moves')
-    print_path(path)
-    print()
+    # start_time = time.time()
+    # path = a_star(init, final)
+    # end_time = time.time()
+    # print('Solution by A* with ', len(path) - 1, ' moves')
+    # print_path(path)
+    # print('Search steps:\t', steps)
+    # print('Used time:\t', end_time - start_time, 's')
+    # print()
 
+    start_time = time.time()
     path = id_a_star(init, final)
+    end_time = time.time()
     print('Solution by IDA* with ', len(path) - 1, ' moves')
     print_path(path)
+    print('Search steps:\t', steps)
+    print('Used time:\t', end_time - start_time, 's')
 
 # # [[15, 12, 8, 13], [11, 14, 2, 1], [7, 6, 5, 9], [3, 10, 0, 4]]
