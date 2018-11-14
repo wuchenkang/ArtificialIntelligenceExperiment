@@ -8,9 +8,9 @@ using namespace std;
 Board::Board(){
     // 棋盘初始化
     turn = true;
-    for(int i = 0; i < 6; i++){
-        for(int j = 0; j < 6; j++){
-            state[i][j] = ' ';
+    for (auto &i : state) {
+        for (char &j : i) {
+            j = ' ';
         }
     }
     state[2][2] = state[3][3] = 'W';
@@ -193,8 +193,8 @@ bool Board::move(int x, int y){
     }else{
         char own = turn ? 'B' : 'W';
         state[x][y] = own;
-        for(int i = 0; i < influenced_list.size(); i++){
-            state[influenced_list[i].first][influenced_list[i].second] = own;
+        for (auto &i : influenced_list) {
+            state[i.first][i.second] = own;
         }
         turn = !turn;
         return true;

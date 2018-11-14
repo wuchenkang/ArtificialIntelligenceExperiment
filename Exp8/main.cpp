@@ -8,7 +8,7 @@ int main(){
     int x, y;
     board.show();
     putchar('\n');
-    while(scanf("%d%d", &x, &y)){
+    while(scanf("%d", &x) && scanf("%d", &y)){
         board.move(x, y);
         board.show();
         putchar('\n');
