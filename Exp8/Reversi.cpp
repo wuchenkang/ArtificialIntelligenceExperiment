@@ -18,10 +18,10 @@ Board::Board(){
 }
 
 vector<pair<int, int> > Board::judge(int x, int y, char state[6][6]){
-    vector<pair<int, int> > influenced_pos;
+    vector<pair<int, int> > influenced_list;
     // 当前位置已有棋子
     if(state[x][y] != ' '){
-        return influenced_pos;
+        return influenced_list;
     }
 
     // 判断己方和敌方棋子
@@ -44,7 +44,7 @@ vector<pair<int, int> > Board::judge(int x, int y, char state[6][6]){
             continue;
         }else if(hasEnemy && state[i][y] == own){
             for(int j = x - 1; j > i; j--){
-                influenced_pos.emplace_back(pair<int, int>(j, y));
+                influenced_list.emplace_back(pair<int, int>(j, y));
             }
             break;
         }else{
@@ -60,7 +60,7 @@ vector<pair<int, int> > Board::judge(int x, int y, char state[6][6]){
             continue;
         }else if(hasEnemy && state[i][y] == own){
             for(int j = x + 1; j < i; j++){
-                influenced_pos.emplace_back(pair<int, int>(j, y));
+                influenced_list.emplace_back(pair<int, int>(j, y));
             }
             break;
         }else{
@@ -76,7 +76,7 @@ vector<pair<int, int> > Board::judge(int x, int y, char state[6][6]){
             continue;
         }else if(hasEnemy && state[x][i] == own){
             for(int j = y - 1; j > i; j--){
-                influenced_pos.emplace_back(pair<int, int>(x, j));
+                influenced_list.emplace_back(pair<int, int>(x, j));
             }
             break;
         }else{
@@ -91,8 +91,8 @@ vector<pair<int, int> > Board::judge(int x, int y, char state[6][6]){
             hasEnemy = true;
             continue;
         }else if(hasEnemy && state[x][i] == own){
-            for(int j = y + 1; j < 6; j++){
-                influenced_pos.emplace_back(pair<int, int>(x, j));
+            for(int j = y + 1; j < i; j++){
+                influenced_list.emplace_back(pair<int, int>(x, j));
             }
             break;
         }else{
@@ -108,7 +108,7 @@ vector<pair<int, int> > Board::judge(int x, int y, char state[6][6]){
             continue;
         }else if(hasEnemy && state[i][j] == own){
             for(int k = x - 1, l = y - 1; k > i && l > j; k--, l--){
-                influenced_pos.emplace_back(pair<int, int>(k, l));
+                influenced_list.emplace_back(pair<int, int>(k, l));
             }
             break;
         }else{
@@ -124,7 +124,7 @@ vector<pair<int, int> > Board::judge(int x, int y, char state[6][6]){
             continue;
         }else if(hasEnemy && state[i][j] == own){
             for(int k = x + 1, l = y - 1; k < i && l > j; k++, l--){
-                influenced_pos.emplace_back(pair<int, int>(k, l));
+                influenced_list.emplace_back(pair<int, int>(k, l));
             }
             break;
         }else{
@@ -140,7 +140,7 @@ vector<pair<int, int> > Board::judge(int x, int y, char state[6][6]){
             continue;
         }else if(hasEnemy && state[i][j] == own){
             for(int k = x - 1, l = y + 1; k > i && l < j; k--, l++){
-                influenced_pos.emplace_back(pair<int, int>(k, l));
+                influenced_list.emplace_back(pair<int, int>(k, l));
             }
             break;
         }else{
@@ -156,7 +156,7 @@ vector<pair<int, int> > Board::judge(int x, int y, char state[6][6]){
             continue;
         }else if(hasEnemy && state[i][j] == own){
             for(int k = x + 1, l = y + 1; k < i && l < j; k++, l++){
-                influenced_pos.emplace_back(pair<int, int>(k, l));
+                influenced_list.emplace_back(pair<int, int>(k, l));
             }
             break;
         }else{
@@ -164,16 +164,17 @@ vector<pair<int, int> > Board::judge(int x, int y, char state[6][6]){
         }
     }
 
-    return influenced_pos;
+    return influenced_list;
 }
 
 void Board::show(){
+    printf("    0    1    2    3    4    5\n");
     for(int i = 0; i < 6; i++){
-        printf("+----+----+----+----+----+----+\n");
+        printf(" +----+----+----+----+----+----+\n%d", i);
         for(int j = 0; j < 6; j++){
-            if(state[i][j] == 'B')
+            if(state[i][j] == 'B') {
                 printf("| %s ", "●\0");
-            else if(state[i][j] == 'W'){
+            }else if(state[i][j] == 'W'){
                 printf("| %s ", "○\0");
             }else{
                 printf("|    ");
@@ -182,5 +183,20 @@ void Board::show(){
         }
         printf("|\n");
     }
-    printf("+----+----+----+----+----+----+\n");
+    printf(" +----+----+----+----+----+----+\n");
+}
+
+bool Board::move(int x, int y){
+    vector<pair<int, int> > influenced_list = judge(x, y, state);
+    if(influenced_list.empty()){
+        return false;
+    }else{
+        char own = turn ? 'B' : 'W';
+        state[x][y] = own;
+        for(int i = 0; i < influenced_list.size(); i++){
+            state[influenced_list[i].first][influenced_list[i].second] = own;
+        }
+        turn = !turn;
+        return true;
+    }
 }
