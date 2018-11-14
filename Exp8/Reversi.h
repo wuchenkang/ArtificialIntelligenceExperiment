@@ -6,9 +6,9 @@
 class Board{
 public:
     Board();
-private:
     std::vector<std::pair<int, int> > judge(int x, int y, char state[6][6]);
-
+    void show();
+private:
     bool turn;
     char state[6][6];
 };

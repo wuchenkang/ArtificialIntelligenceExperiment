@@ -1,5 +1,7 @@
 #include "Reversi.h"
 #include <vector>
+#include <cstdio>
+#include <cstdlib>
 
 using namespace std;
 
@@ -8,7 +10,7 @@ Board::Board(){
     turn = true;
     for(int i = 0; i < 6; i++){
         for(int j = 0; j < 6; j++){
-            state[i][j] = '?';
+            state[i][j] = ' ';
         }
     }
     state[2][2] = state[3][3] = 'W';
@@ -18,7 +20,7 @@ Board::Board(){
 vector<pair<int, int> > Board::judge(int x, int y, char state[6][6]){
     vector<pair<int, int> > influenced_pos;
     // 当前位置已有棋子
-    if(state[x][y] != '?'){
+    if(state[x][y] != ' '){
         return influenced_pos;
     }
 
@@ -36,7 +38,7 @@ vector<pair<int, int> > Board::judge(int x, int y, char state[6][6]){
 
     // 上
     hasEnemy = false;
-    for(int i = x - 1; i > 0; i--){
+    for(int i = x - 1; i >= 0; i--){
         if(state[i][y] == enemy){
             hasEnemy = true;
             continue;
@@ -68,7 +70,7 @@ vector<pair<int, int> > Board::judge(int x, int y, char state[6][6]){
 
     // 左
     hasEnemy = false;
-    for(int i = y - 1; i > 0; i--){
+    for(int i = y - 1; i >= 0; i--){
         if(state[x][i] == enemy){
             hasEnemy = true;
             continue;
@@ -98,5 +100,87 @@ vector<pair<int, int> > Board::judge(int x, int y, char state[6][6]){
         }
     }
 
+    // 左上
+    hasEnemy = false;
+    for(int i = x - 1, j = y - 1; i >= 0 && j >= 0; i--, j--){
+        if(state[i][j] == enemy){
+            hasEnemy = true;
+            continue;
+        }else if(hasEnemy && state[i][j] == own){
+            for(int k = x - 1, l = y - 1; k > i && l > j; k--, l--){
+                influenced_pos.emplace_back(pair<int, int>(k, l));
+            }
+            break;
+        }else{
+            break;
+        }
+    }
+
+    // 左下
+    hasEnemy = false;
+    for(int i = x + 1, j = y - 1; i < 6 && j >= 0; i++, j--){
+        if(state[i][j] == enemy){
+            hasEnemy = true;
+            continue;
+        }else if(hasEnemy && state[i][j] == own){
+            for(int k = x + 1, l = y - 1; k < i && l > j; k++, l--){
+                influenced_pos.emplace_back(pair<int, int>(k, l));
+            }
+            break;
+        }else{
+            break;
+        }
+    }
+
+    // 右上
+    hasEnemy = false;
+    for(int i = x - 1, j = y + 1; i >= 0 && j < 6; i--, j++){
+        if(state[i][j] == enemy){
+            hasEnemy = true;
+            continue;
+        }else if(hasEnemy && state[i][j] == own){
+            for(int k = x - 1, l = y + 1; k > i && l < j; k--, l++){
+                influenced_pos.emplace_back(pair<int, int>(k, l));
+            }
+            break;
+        }else{
+            break;
+        }
+    }
+
+    // 右下
+    hasEnemy = false;
+    for(int i = x + 1, j = y + 1; i < 6 && j < 6; i++, j++){
+        if(state[i][j] == enemy){
+            hasEnemy = true;
+            continue;
+        }else if(hasEnemy && state[i][j] == own){
+            for(int k = x + 1, l = y + 1; k < i && l < j; k++, l++){
+                influenced_pos.emplace_back(pair<int, int>(k, l));
+            }
+            break;
+        }else{
+            break;
+        }
+    }
+
     return influenced_pos;
+}
+
+void Board::show(){
+    for(int i = 0; i < 6; i++){
+        printf("+----+----+----+----+----+----+\n");
+        for(int j = 0; j < 6; j++){
+            if(state[i][j] == 'B')
+                printf("| %s ", "●\0");
+            else if(state[i][j] == 'W'){
+                printf("| %s ", "○\0");
+            }else{
+                printf("|    ");
+            }
+
+        }
+        printf("|\n");
+    }
+    printf("+----+----+----+----+----+----+\n");
 }

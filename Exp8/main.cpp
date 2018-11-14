@@ -4,6 +4,8 @@
 using namespace std;
 
 int main(){
-    cout << "Hello world!" << endl;
+    Board board;
+    board.show();
+    board.show();
     return 0;
 }
