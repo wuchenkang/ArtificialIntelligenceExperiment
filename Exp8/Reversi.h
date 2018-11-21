@@ -22,7 +22,7 @@ public:
     std::pair<int, int> hint(int depth);
     std::pair<int, int> random();
 private:
-    int search(int currentDepth, int maxDepth);
+    int search(int currentDepth, int maxDepth, int alpha, int beta);
 
     bool turn;
     char state[6][6];

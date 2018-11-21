@@ -271,7 +271,7 @@ pair<int, int> Board::hint(int depth){
             if (state[i][j] == ' ' && !judge(i, j).empty()) {
                 next = *this;
                 next.move(i, j);
-                temp = next.search(1, depth);
+                temp = next.search(1, depth, INT_MIN, INT_MAX);
                 if(turn){
                     if(temp > value){
                         value = temp;
@@ -306,13 +306,10 @@ pair<int, int> Board::random(){
     return temp[rand() % temp.size()];
 }
 
-int Board::search(int currentDepth, int maxDepth){
-    if(currentDepth >= maxDepth){
+// TODO
+int Board::search(int currentDepth, int maxDepth, int alpha, int beta){
+    if(currentDepth >= maxDepth || finished()){
         return eval();
-    }
-
-    if(finished()){
-        return eval() * 10;
     }
 
     int value, temp;
@@ -321,7 +318,7 @@ int Board::search(int currentDepth, int maxDepth){
     if(skipped()){
         next = *this;
         next.skip();
-        return next.search(currentDepth+1, maxDepth);
+        return next.search(currentDepth+1, maxDepth, alpha, beta);
     }
 
     if(turn){
@@ -332,13 +329,23 @@ int Board::search(int currentDepth, int maxDepth){
 
     for(int i = 0; i < 6; i++){
         for(int j = 0; j < 6; j++){
+            if(alpha > beta){
+//                printf("Purge!\n");
+                return value;
+            }
             if(state[i][j] == ' ' && !judge(i, j).empty()){
                 next = *this;
                 next.move(i, j);
-                temp = next.search(currentDepth+1, maxDepth);
+                temp = next.search(currentDepth+1, maxDepth, alpha, beta);
                 if(turn){
+                    if(temp > alpha){
+                        alpha = temp;
+                    }
                     value = temp > value ? temp : value;
                 }else{
+                    if(temp < beta){
+                        beta = temp;
+                    }
                     value = temp < value ? temp : value;
                 }
             }
