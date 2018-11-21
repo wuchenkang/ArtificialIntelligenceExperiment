@@ -1,7 +1,4 @@
 #include "Reversi.h"
-#include <vector>
-#include <cstdio>
-#include <cstdlib>
 
 using namespace std;
 
@@ -17,7 +14,16 @@ Board::Board(){
     state[2][3] = state[3][2] = 'B';
 }
 
-vector<pair<int, int> > Board::judge(char state[6][6], int x, int y){
+Board::Board(const Board &other) {
+    for(int i = 0; i < 6; i++){
+        for(int j = 0; j < 6; j++){
+            state[i][j] = other.state[i][j];
+        }
+    }
+    turn = other.turn;
+}
+
+vector<pair<int, int> > Board::judge(int x, int y){
     vector<pair<int, int> > influenced_list;
     // 当前位置已有棋子
     if(state[x][y] != ' '){
@@ -167,6 +173,54 @@ vector<pair<int, int> > Board::judge(char state[6][6], int x, int y){
     return influenced_list;
 }
 
+int Board::eval(){
+    int chessDiff = 0;
+
+    for (auto &i : state) {
+        for (char j : i) {
+            if(j == 'B'){
+                chessDiff++;
+            }else if(j == 'W'){
+                chessDiff--;
+            }
+        }
+    }
+
+    return chessDiff;
+}
+
+bool Board::skipped(){
+    for(int i = 0; i < 6; i++){
+        for(int j = 0; j < 6; j++){
+            if((state[i][j] == ' ' && !judge(i, j).empty())){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void Board::skip(){
+    turn = !turn;
+//    printf(turn ? "# Black skipped!\n" : "# White skipped!\n");
+}
+
+bool Board::finished(){
+    if(!skipped()){
+        return false;
+    }
+    turn = !turn;
+    if(!skipped()){
+        turn = !turn;
+        return false;
+    }
+    return true;
+}
+
+void Board::finish(){
+//    printf(eval() > 0 ? "# Black win!\n" : "# White win!\n");
+}
+
 void Board::show(){
     printf("    0   1   2   3   4   5\n");
     for(int i = 0; i < 6; i++){
@@ -187,7 +241,7 @@ void Board::show(){
 }
 
 bool Board::move(int x, int y){
-    vector<pair<int, int> > influenced_list = judge(state, x, y);
+    vector<pair<int, int> > influenced_list = judge(x, y);
     if(influenced_list.empty()){
         return false;
     }else{
@@ -201,13 +255,77 @@ bool Board::move(int x, int y){
     }
 }
 
-bool Board::finished(){
-    for(int i = 0; i < 6; i++){
-        for(int j = 0; j < 6; j++){
-            if(state[i][j] == ' ' && judge(state, i, j).empty()){
-                return false;
+pair<int, int> Board::hint(int depth){
+    pair<int, int> result;
+    int value, temp;
+    Board next;
+
+    if(turn){
+        value = INT_MIN;
+    }else{
+        value = INT_MAX;
+    }
+
+    for(int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
+            if (state[i][j] == ' ' && !judge(i, j).empty()) {
+                next = *this;
+                next.move(i, j);
+                temp = next.search(1, depth);
+                if(turn){
+                    if(temp > value){
+                        value = temp;
+                        result.first = i;
+                        result.second = j;
+                    }
+                }else{
+                    if(temp < value){
+                        value = temp;
+                        result.first = i;
+                        result.second = j;
+                    }
+                }
             }
         }
     }
-    return true;
+
+    return result;
+}
+
+int Board::search(int currentDepth, int maxDepth){
+    if(currentDepth >= maxDepth || finished()){
+        return eval();
+    }
+
+    int value, temp;
+    Board next;
+
+    if(skipped()){
+        next = *this;
+        next.skip();
+        return next.search(currentDepth+1, maxDepth);
+    }
+
+    if(turn){
+        value = INT_MIN;
+    }else{
+        value = INT_MAX;
+    }
+
+    for(int i = 0; i < 6; i++){
+        for(int j = 0; j < 6; j++){
+            if(state[i][j] == ' ' && !judge(i, j).empty()){
+                next = *this;
+                next.move(i, j);
+                temp = next.search(currentDepth+1, maxDepth);
+                if(turn){
+                    value = temp > value ? temp : value;
+                }else{
+                    value = temp < value ? temp : value;
+                }
+            }
+        }
+    }
+
+    return value;
 }
