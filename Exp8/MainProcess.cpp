@@ -15,7 +15,7 @@ int main(){
 //        putchar('\n');
         while(true){
             if(!board.skipped()){
-                pair<int, int> temp = board.hint(0);
+                pair<int, int> temp = board.hint(6);
                 x = temp.first;
                 y = temp.second;
 //                printf("W:\t%d %d\n", x, y);
