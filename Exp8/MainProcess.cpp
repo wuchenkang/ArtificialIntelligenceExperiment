@@ -1,10 +1,12 @@
 #include "Reversi.h"
 #include <iostream>
+#include <ctime>
 
 using namespace std;
 
 int main(){
     int win = 0, total  = 100;
+    unsigned int start = time(nullptr);
     srand((unsigned int)time(nullptr));
     for(int i = 0; i < total; i++){
         Board board;
@@ -13,7 +15,7 @@ int main(){
 //        putchar('\n');
         while(true){
             if(!board.skipped()){
-                pair<int, int> temp = board.random();
+                pair<int, int> temp = board.hint(6);
                 x = temp.first;
                 y = temp.second;
 //                printf("B:\t%d %d\n", x, y);
@@ -66,6 +68,8 @@ int main(){
             }
         }
     }
+    unsigned int end = time(nullptr);
     printf("Win rate:\t%f%%\n", win * 100.0 / total);
+    printf("Time:\t%u\n", end - start);
     return 0;
 }
