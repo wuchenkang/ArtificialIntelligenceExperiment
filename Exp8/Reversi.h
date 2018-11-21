@@ -26,6 +26,7 @@ private:
 
     bool turn;
     char state[6][6];
+    static int evalMap[6][6];
 };
 
 #endif //ARTIFICIALINTELLIGENCEEXPERIMENT_REVERSI_H

@@ -2,6 +2,21 @@
 
 using namespace std;
 
+int Board::evalMap[6][6] = {
+    {8, 2, 2, 2, 2, 8},
+    {2, 1, 2, 2, 1, 2},
+    {2, 2, 2, 2, 2, 2},
+    {2, 2, 2, 2, 2, 2},
+    {2, 1, 2, 2, 1, 2},
+    {8, 2, 2, 2, 2, 8}
+//    {2, 2, 2, 2, 2, 2},
+//    {2, 2, 2, 2, 2, 2},
+//    {2, 2, 2, 2, 2, 2},
+//    {2, 2, 2, 2, 2, 2},
+//    {2, 2, 2, 2, 2, 2},
+//    {2, 2, 2, 2, 2, 2}
+};
+
 Board::Board(){
     // 棋盘初始化
     turn = true;
@@ -14,7 +29,7 @@ Board::Board(){
     state[2][3] = state[3][2] = 'B';
 }
 
-Board::Board(const Board &other) {
+Board::Board(const Board& other) {
     for(int i = 0; i < 6; i++){
         for(int j = 0; j < 6; j++){
             state[i][j] = other.state[i][j];
@@ -176,14 +191,18 @@ vector<pair<int, int> > Board::judge(int x, int y){
 int Board::eval(){
     int chessDiff = 0;
 
-    for (auto &i : state) {
-        for (char j : i) {
-            if(j == 'B'){
-                chessDiff++;
-            }else if(j == 'W'){
-                chessDiff--;
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
+            if(state[i][j] == 'B'){
+                chessDiff+= evalMap[i][j];
+            }else if(state[i][j] == 'W'){
+                chessDiff-= evalMap[i][j];
             }
         }
+    }
+
+    if(finished()){
+        chessDiff *= 10;
     }
 
     return chessDiff;
