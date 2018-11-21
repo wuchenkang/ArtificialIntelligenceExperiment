@@ -292,9 +292,27 @@ pair<int, int> Board::hint(int depth){
     return result;
 }
 
+pair<int, int> Board::random(){
+    vector<pair<int, int> > temp;
+
+    for(int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
+            if (state[i][j] == ' ' && !judge(i, j).empty()) {
+                temp.emplace_back(i, j);
+            }
+        }
+    }
+
+    return temp[rand() % temp.size()];
+}
+
 int Board::search(int currentDepth, int maxDepth){
-    if(currentDepth >= maxDepth || finished()){
+    if(currentDepth >= maxDepth){
         return eval();
+    }
+
+    if(finished()){
+        return eval() * 10;
     }
 
     int value, temp;

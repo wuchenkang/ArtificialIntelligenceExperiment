@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <climits>
+#include <ctime>
 
 class Board{
 public:
@@ -19,6 +20,7 @@ public:
     void finish();
     void show();
     std::pair<int, int> hint(int depth);
+    std::pair<int, int> random();
 private:
     int search(int currentDepth, int maxDepth);
 
