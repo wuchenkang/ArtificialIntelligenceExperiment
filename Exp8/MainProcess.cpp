@@ -18,18 +18,17 @@ int main(){
                 pair<int, int> temp = board.hint(6);
                 x = temp.first;
                 y = temp.second;
-//                printf("W:\t%d %d\n", x, y);
+                printf("B:\t%d %d\n", x, y);
                 if(!board.move(x, y)){
                     cout << "Error!\n" << endl;
                     continue;
                 }
-//                putchar('\n');
                 board.show();
                 putchar('\n');
 
             }else{
                 board.skip();
-//                printf("# White skipped!\n");
+                printf("# Black skipped!\n");
             }
 
             if(board.finished()){
@@ -42,20 +41,21 @@ int main(){
             }
 
             if(!board.skipped()){
-                pair<int, int> temp = board.hint(6);
-                x = temp.first;
-                y = temp.second;
-//                printf("B:\t%d %d\n", x, y);
+//                pair<int, int> temp = board.random();
+//                x = temp.first;
+//                y = temp.second;
+                printf("Please enter your choise:\t");
+                scanf("%d%d", &x, &y);
+                printf("W:\t%d %d\n", x, y);
                 if(!board.move(x, y)){
                     cout << "Error!\n" << endl;
                     continue;
                 }
-//                putchar('\n');
-//                board.show();
-//                putchar('\n');
+                board.show();
+                putchar('\n');
             }else{
                 board.skip();
-//                printf("# Black skipped!\n");
+                printf("# White skipped!\n");
             }
 
             if(board.finished()){
