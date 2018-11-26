@@ -5,14 +5,14 @@
 using namespace std;
 
 int main(){
-    int win = 0, total  = 100;
+    int win = 0, total  = 1;
     unsigned int start = static_cast<unsigned int>(time(nullptr));
     srand((unsigned int)time(nullptr));
     for(int i = 0; i < total; i++){
         Board board;
         int x, y;
-//        board.show();
-//        putchar('\n');
+        board.show();
+        putchar('\n');
         while(true){
             if(!board.skipped()){
                 pair<int, int> temp = board.hint(6);
@@ -24,8 +24,8 @@ int main(){
                     continue;
                 }
 //                putchar('\n');
-//                board.show();
-//                putchar('\n');
+                board.show();
+                putchar('\n');
 
             }else{
                 board.skip();
@@ -42,7 +42,7 @@ int main(){
             }
 
             if(!board.skipped()){
-                pair<int, int> temp = board.random();
+                pair<int, int> temp = board.hint(6);
                 x = temp.first;
                 y = temp.second;
 //                printf("B:\t%d %d\n", x, y);
