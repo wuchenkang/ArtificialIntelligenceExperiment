@@ -19,6 +19,7 @@ public:
     bool finished();    // 判断棋局是否结束（双方都无棋可下）
     void finish();      // 结束棋局
     void show();        // 打印出当前棋局
+    int win();         // 判断出棋局胜负
     std::pair<int, int> hint(int depth);    // 根据当前棋面给出提示
     std::pair<int, int> random();           // 随机选择可下的棋步
 private:

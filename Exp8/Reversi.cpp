@@ -266,6 +266,20 @@ void Board::show(){
     printf("Eval func:\t%d\n", eval());
 }
 
+int Board::win(){
+    int black_count = 0, white_count = 0;
+    for (auto &i : state) {
+        for (char j : i) {
+            if(j == 'B'){
+                black_count++;
+            }else if(j == 'W'){
+                white_count++;
+            }
+        }
+    }
+    return black_count - white_count;
+}
+
 bool Board::move(int x, int y){
     vector<pair<int, int> > influenced_list = judge(x, y);
     if(influenced_list.empty()){    // 无可被翻转的棋子·
