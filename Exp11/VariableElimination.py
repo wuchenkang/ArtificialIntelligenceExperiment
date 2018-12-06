@@ -7,8 +7,19 @@ class VariableElimination:
                 if ev in factor_list[i].var_list:
                     factor_list[i] = factor_list[i].restrict(ev, evidence_list[ev])
         for var in ordered_list_of_hidden_variables:
-            # TODO
-            pass
+            new_factor = None
+            deleted_list = []
+            for factor in factor_list:
+                if var in factor.var_list:
+                    if new_factor == None:
+                        new_factor = factor
+                    else:
+                        new_factor = new_factor.multiply(factor)
+                    deleted_list.append(factor)
+            for factor in deleted_list:
+                factor_list.remove(factor)
+            new_factor = new_factor.sum_out(var)
+            factor_list.append(new_factor)
         print("RESULT: ")
         res = factor_list[0]
         for factor in factor_list[1:]:
@@ -58,6 +69,8 @@ class Node:
         new_cpt = {}
         for i in range(pow(2, len(new_list))):
             key = Util.to_binary(i, len(new_list))
+            if len(new_list) == 0:
+                key = ''
             self_key  = ''
             for i in range(len(self.var_list)):
                 try:
@@ -81,6 +94,8 @@ class Node:
         if sumed_variable == 0:
             for j in range(pow(2, len(new_var_list) - sumed_variable)):
                 postfix = Util.to_binary(j, len(new_var_list) - sumed_variable)
+                if len(self.var_list) == 1:
+                    postfix = ''
                 new_cpt[postfix] = self.cpt['0' + postfix] + self.cpt['1' + postfix]
         elif sumed_variable == len(self.var_list) - 1:
             for i in range(pow(2, sumed_variable)):
@@ -105,6 +120,8 @@ class Node:
         if restricted_variable == 0:
             for j in range(pow(2, len(new_var_list) - restricted_variable)):
                 postfix = Util.to_binary(j, len(new_var_list) - restricted_variable)
+                if len(self.var_list) == 1:
+                    postfix = ''
                 new_cpt[postfix] = self.cpt[str(value) + postfix]
         elif restricted_variable == len(self.var_list) - 1:
             for i in range(pow(2, restricted_variable)):
@@ -136,19 +153,19 @@ A.set_cpt({'111': 0.95, '011': 0.05, '110': 0.94, '010': 0.06,
 J.set_cpt({'11': 0.9, '01': 0.1, '10': 0.05, '00': 0.95})
 M.set_cpt({'11': 0.7, '01': 0.3, '10': 0.01, '00': 0.99})
 
-# print(B.cpt)
-# print(E.cpt)
-print(A.cpt)
-# print(B.multiply(E).multiply(A).sum_out('B').sum_out('E').cpt)
-# print(A.sum_out('B').cpt)
-l = [A]
-for i in range(len(l)):
-    l[i] =  l[i].sum_out('A')
-    print(l[i].cpt)
-for i in range(len(l)):
-    print(l[i].cpt)
-# print("P(A) **********************")
-# VariableElimination.inference([B, E, A, J, M], ['A'], ['B', 'E', 'J', 'M'], {})
-#
-# print("P(B | J, ~M) **********************")
-# VariableElimination.inference([B, E, A, J, M], ['B'], ['E', 'A'], {'J':1, 'M':0})
+print("P(B | J, ~M) **********************")
+VariableElimination.inference([B, E, A, J, M], ['B'], ['E', 'A'], {'J':1, 'M':0})
+
+print("P(J, M) **********************")
+VariableElimination.inference([B, E, A, J, M], ['J', 'M'], ['E', 'B', 'A'], {})
+
+print("P(B, E, A, J, M) **********************")
+VariableElimination.inference([B, E, A, J, M], ['B', 'E', 'A', 'J', 'M'], [], {})
+
+print("P(A | J, ~M) **********************")
+VariableElimination.inference([B, E, A, J, M], ['A'], ['E', 'B'], {'J':1, 'M':1})
+
+print("P(J, M | ~B) **********************")
+VariableElimination.inference([B, E, A, J, M], ['J', 'M'], ['E', 'A'], {'B': 0})
+
+input()

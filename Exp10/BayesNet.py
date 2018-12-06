@@ -249,3 +249,5 @@ if __name__ == "__main__":
             \n\tMRIScanResult='Hemmorraghic Stroke', Anticoagulants='Used', \
             \n\tStrokeType='Stroke Mimic', Disability='Severe', Mortality ='False') = ",
           cal_prob(model, domainList, ['0-30', 'Ischemic Stroke', 'Hemmorraghic Stroke', 'Used', 'Stroke Mimic', 'Severe', 'False']))
+
+    input()
