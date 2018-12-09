@@ -1,12 +1,15 @@
 import pomegranate as pg
 
 
+# Calculate joint probability
 def cal_prob(network, domain_list, predict_list):
+    # Calculate how many event probability to be summed up
     iter_count = 1
     for i in range(network.node_count()):
         if predict_list[i] is None:
             iter_count *= len(domain_list[i])
 
+    # Iterate and sum all these probability up
     result = 0
     for i in range(iter_count):
         temp_val = iter_count
@@ -22,7 +25,9 @@ def cal_prob(network, domain_list, predict_list):
     return result
 
 
+# Calculate conditional probability
 def cal_cond_prob(network, domain_list, predict_list, condition_list):
+    # Use conditional probability formula to calculate
     for i in range(len(predict_list)):
         if predict_list[i] is None and condition_list[i] is not None:
             predict_list[i] = condition_list[i]
@@ -127,10 +132,20 @@ if __name__ == "__main__":
     model.bake()
 
     # Calculate the probability
-    print("P(JohnCalls, MaryCalls) = ", cal_prob(model, [['T', 'F'] for _ in range(5)], [None, None, None, 'T', 'T']))
-    print("P(Burglary, Earthquake, Alarm, JohnCalls, MaryCalls) = ", cal_prob(model, [['T', 'F'] for _ in range(5)], ['T', 'T', 'T', 'T', 'T']))
-    print("P(Alarm | JohnCalls, MaryCalls) = ", cal_cond_prob(model, [['T', 'F'] for _ in range(5)], [None, None, 'T', None, None], [None, None, None, 'T', 'T']))
-    print("P(JohnCalls, ￢MaryCalls | ￢Burglary) = ", cal_cond_prob(model, [['T', 'F'] for _ in range(5)], [None, None, None, 'T', 'F'], ['F', None, None, None, None]))
+    print("P(JohnCalls, MaryCalls) = ",
+          cal_prob(model, [['T', 'F'] for _ in range(5)],
+                   [None, None, None, 'T', 'T']))
+    print("P(Burglary, Earthquake, Alarm, JohnCalls, MaryCalls) = ",
+          cal_prob(model, [['T', 'F'] for _ in range(5)],
+                   ['T', 'T', 'T', 'T', 'T']))
+    print("P(Alarm | JohnCalls, MaryCalls) = ",
+          cal_cond_prob(model, [['T', 'F'] for _ in range(5)],
+                        [None, None, 'T', None, None],
+                        [None, None, None, 'T', 'T']))
+    print("P(JohnCalls, ￢MaryCalls | ￢Burglary) = ",
+          cal_cond_prob(model, [['T', 'F'] for _ in range(5)],
+                        [None, None, None, 'T', 'F'],
+                        ['F', None, None, None, None]))
 
     print()
 
@@ -249,5 +264,4 @@ if __name__ == "__main__":
             \n\tMRIScanResult='Hemmorraghic Stroke', Anticoagulants='Used', \
             \n\tStrokeType='Stroke Mimic', Disability='Severe', Mortality ='False') = ",
           cal_prob(model, domainList, ['0-30', 'Ischemic Stroke', 'Hemmorraghic Stroke', 'Used', 'Stroke Mimic', 'Severe', 'False']))
-
     input()
