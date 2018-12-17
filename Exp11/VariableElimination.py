@@ -2,10 +2,12 @@ class VariableElimination:
     @staticmethod
     def inference(factor_list, query_variables,
                   ordered_list_of_hidden_variables, evidence_list):
+        # 限制证据变量
         for ev in evidence_list:
             for i in range(len(factor_list)):
                 if ev in factor_list[i].var_list:
                     factor_list[i] = factor_list[i].restrict(ev, evidence_list[ev])
+        # 求和其他非查询变量
         for var in ordered_list_of_hidden_variables:
             new_factor = None
             deleted_list = []
@@ -21,6 +23,8 @@ class VariableElimination:
             new_factor = new_factor.sum_out(var)
             factor_list.append(new_factor)
         print("RESULT: ")
+
+        # 剩余因子相乘并归一化得到结果
         res = factor_list[0]
         for factor in factor_list[1:]:
             res = res.multiply(factor)
@@ -58,14 +62,18 @@ class Node:
 
     def multiply(self, factor):
         """function that multiplies with another factor"""
+        # 两因子变量列表求并集得到乘积的变量列表
         new_list = list(set(self.var_list).union(set(factor.var_list)))
 
+        # 找到两个因子中变量在新因子变量列表中的索引
         self_map = {}
         for i in range(len(self.var_list)):
             self_map[i] = new_list.index(self.var_list[i])
         other_map = {}
         for i in range(len(factor.var_list)):
             other_map[i] = new_list.index(factor.var_list[i])
+
+        # 新因子的CPT表项的值等于两因子中对应项的乘积
         new_cpt = {}
         for i in range(pow(2, len(new_list))):
             key = Util.to_binary(i, len(new_list))
@@ -73,10 +81,7 @@ class Node:
                 key = ''
             self_key  = ''
             for i in range(len(self.var_list)):
-                try:
-                    self_key += key[self_map[i]]
-                except:
-                    print(i)
+                self_key += key[self_map[i]]
             other_key = ''
             for i in range(len(factor.var_list)):
                 other_key += key[other_map[i]]
@@ -88,8 +93,11 @@ class Node:
 
     def sum_out(self, variable):
         """function that sums out a variable given a factor"""
+        # 新因子变量列表为原因子变量列表减去被求和的变量
         sumed_variable = self.var_list.index(variable)
         new_var_list = self.var_list[:sumed_variable] + self.var_list[sumed_variable+1:]
+
+        # 对于新因子CPT中的表项，其值等于原因子与新因子变量取值相同的几个表项的和
         new_cpt = {}
         if sumed_variable == 0:
             for j in range(pow(2, len(new_var_list) - sumed_variable)):
@@ -114,8 +122,11 @@ class Node:
     def restrict(self, variable, value):
         """function that restricts a variable to some value
         in a given factor"""
+        # 新因子变量列表为原因子变量列表减去被求和的变量
         restricted_variable = self.var_list.index(variable)
         new_var_list = self.var_list[:restricted_variable] + self.var_list[restricted_variable + 1:]
+
+        # 对于新因子CPT中的表项，其值为原因子中与新因子变量取值相同且限制变量取对应值的的单个表项的值
         new_cpt = {}
         if restricted_variable == 0:
             for j in range(pow(2, len(new_var_list) - restricted_variable)):
@@ -153,19 +164,8 @@ A.set_cpt({'111': 0.95, '011': 0.05, '110': 0.94, '010': 0.06,
 J.set_cpt({'11': 0.9, '01': 0.1, '10': 0.05, '00': 0.95})
 M.set_cpt({'11': 0.7, '01': 0.3, '10': 0.01, '00': 0.99})
 
+print("P(A) **********************")
+VariableElimination.inference([B, E, A, J, M], ['A'], ['B', 'E', 'J', 'M'], {})
+
 print("P(B | J, ~M) **********************")
 VariableElimination.inference([B, E, A, J, M], ['B'], ['E', 'A'], {'J':1, 'M':0})
-
-print("P(J, M) **********************")
-VariableElimination.inference([B, E, A, J, M], ['J', 'M'], ['E', 'B', 'A'], {})
-
-print("P(B, E, A, J, M) **********************")
-VariableElimination.inference([B, E, A, J, M], ['B', 'E', 'A', 'J', 'M'], [], {})
-
-print("P(A | J, ~M) **********************")
-VariableElimination.inference([B, E, A, J, M], ['A'], ['E', 'B'], {'J':1, 'M':1})
-
-print("P(J, M | ~B) **********************")
-VariableElimination.inference([B, E, A, J, M], ['J', 'M'], ['E', 'A'], {'B': 0})
-
-input()
